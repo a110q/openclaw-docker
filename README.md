@@ -4,98 +4,16 @@
 
 这个仓库不是 `OpenClaw` 核心源码仓库，而是一个围绕官方运行时镜像构建的 **部署与运维模板项目**。
 
-## 为什么要用这个项目
+## 建议阅读顺序
 
-相比直接运行官方镜像，这个项目额外处理了这些高频痛点：
+如果你是第一次接触这个项目，建议按下面顺序阅读：
 
-- 支持 `OpenClaw` 的 Docker sandbox 落地
-- 将 `openclaw.json` 直接持久化到宿主机，便于手改和排障
-- 提供 `default`、`backend`、`frontend` 三个预置 agent
-- 统一 `workspace`、`agentDir`、缓存、日志目录
-- 支持 OpenAI Compatible 接口接入 `gpt-5.4` 等模型
-- 预留 Anthropic、Gemini、Ollama、Feishu 配置模板
-- 兼容 macOS Docker Desktop 下的 Docker socket 与文件共享限制
+1. `快速开始`：先把 Docker 和项目跑起来
+2. `首次登录与重启后重新登录`：解决第一次进入、模式 A/B、重启后怎么进
+3. `常用命令`：学会查看状态、日志和调试容器
+4. `常见问题`：遇到报错时优先看这里
 
-## 适用场景
-
-适合：
-
-- 本机部署 `OpenClaw`
-- 局域网访问 OpenClaw Control UI
-- 多 agent 协作工作流
-- 需要 sandbox 执行命令的 AI agent 场景
-- 想把配置、日志、缓存全部放在宿主机维护
-
-不适合：
-
-- 大规模生产集群
-- Kubernetes 编排
-- 高可用与多副本部署
-- 面向公网的强安全生产发布场景
-
-## 核心能力
-
-- **Docker sandbox**：默认启用 `mode: "all"`、`scope: "agent"`
-- **宿主机配置管理**：主配置文件保存在宿主机目录中
-- **多 agent**：预置 `default`、`backend`、`frontend`
-- **模型 provider 模板**：`default`、`claude`、`gemini`、`ollama`
-- **运维辅助容器**：提供 `openclaw-cli` 和 `openclaw-tools`
-- **Feishu 模板**：预置 channel 与 routing 结构
-
-## 架构概览
-
-```mermaid
-flowchart LR
-    U["Browser / Control UI"] --> G["openclaw-gateway"]
-    C["openclaw-cli"] --> G
-    T["openclaw-tools"] --> G
-    G --> P["Model Providers\nOpenAI Compatible / Claude / Gemini / Ollama"]
-    G --> S["Sandbox Containers\nopenclaw-sbx-*"]
-    G --> D["Host Data Root\nopenclaw.json / workspace / logs / cache"]
-    G --> K["/var/run/docker.sock"]
-    K --> DS["Docker Engine / Docker Desktop"]
-    S --> D
-```
-
-更完整的设计说明见：`docs/open-source-manual.md`
-
-## 目录结构
-
-```text
-.
-├── Dockerfile
-├── docker-compose.yml
-├── .env.example
-├── README.md
-├── CHANGELOG.md
-├── LICENSE
-├── config/
-│   └── openclaw.json.example
-├── scripts/
-│   ├── init-data-dir.sh
-│   └── build-sandbox-image.sh
-└── docs/
-    └── open-source-manual.md
-```
-
-## 数据目录
-
-宿主机数据根目录默认是：
-
-```bash
-/Users/awk/lqf/openclaw_data
-```
-
-初始化后主要包含：
-
-- `openclaw/openclaw.json`
-- `openclaw/workspace/agents/default`
-- `openclaw/workspace/agents/backend`
-- `openclaw/workspace/agents/frontend`
-- `openclaw/workspace/sandbox`
-- `openclaw/agents/<agent>/agent`
-- `cache`
-- `logs`
+如果你已经能正常使用，再继续看后面的架构、目录和配置说明。
 
 ## 快速开始
 
@@ -239,7 +157,7 @@ docker compose run --rm openclaw-cli gateway status
 http://localhost:18789
 ```
 
-## 重启后如何重新登录
+## 首次登录与重启后重新登录
 
 如果你电脑重启了，或者 `Docker Desktop` 重启了，不需要重新部署整个项目，按下面步骤重新进入即可。
 
@@ -443,6 +361,89 @@ grep '^OPENCLAW_GATEWAY_TOKEN=' .env
 - `Gateway Token`：上一步命令输出的等号后内容
 - `Password`：留空
 
+## 常用命令
+
+```bash
+# 查看服务状态
+docker compose ps
+
+# 查看网关日志
+docker compose logs -f openclaw-gateway
+
+# 查看网关运行状态
+docker compose run --rm openclaw-cli gateway status
+
+# 启动调试容器
+docker compose --profile tools up -d openclaw-tools
+
+# 进入调试容器
+docker compose exec openclaw-tools bash
+```
+
+## 常见问题
+
+### 1. Docker socket 权限报错
+
+如果看到：
+
+```text
+permission denied while trying to connect to the docker API
+```
+
+说明容器内访问 Docker socket 的权限有问题。本项目已经通过 `group_add: ["0"]` 处理这一点。
+
+### 2. Docker Desktop 文件共享报错
+
+如果看到：
+
+```text
+mounts denied: path is not shared from the host
+```
+
+说明 sandbox 正在尝试挂载 Docker Desktop 未认可的路径。本项目当前通过宿主机绝对路径 `workspace` / `workspaceRoot` 方案处理了这个问题。
+
+### 3. 页面显示 `pairing required`
+
+说明当前浏览器设备还没有完成配对。这是首次接入时的正常安全流程。
+
+## 为什么要用这个项目
+
+相比直接运行官方镜像，这个项目额外处理了这些高频痛点：
+
+- 支持 `OpenClaw` 的 Docker sandbox 落地
+- 将 `openclaw.json` 直接持久化到宿主机，便于手改和排障
+- 提供 `default`、`backend`、`frontend` 三个预置 agent
+- 统一 `workspace`、`agentDir`、缓存、日志目录
+- 支持 OpenAI Compatible 接口接入 `gpt-5.4` 等模型
+- 预留 Anthropic、Gemini、Ollama、Feishu 配置模板
+- 兼容 macOS Docker Desktop 下的 Docker socket 与文件共享限制
+
+## 适用场景
+
+适合：
+
+- 本机部署 `OpenClaw`
+- 局域网访问 OpenClaw Control UI
+- 多 agent 协作工作流
+- 需要 sandbox 执行命令的 AI agent 场景
+- 想把配置、日志、缓存全部放在宿主机维护
+
+不适合：
+
+- 大规模生产集群
+- Kubernetes 编排
+- 高可用与多副本部署
+- 面向公网的强安全生产发布场景
+
+## 核心能力
+
+- **Docker sandbox**：默认启用 `mode: "all"`、`scope: "agent"`
+- **宿主机配置管理**：主配置文件保存在宿主机目录中
+- **多 agent**：预置 `default`、`backend`、`frontend`
+- **模型 provider 模板**：`default`、`claude`、`gemini`、`ollama`
+- **运维辅助容器**：提供 `openclaw-cli` 和 `openclaw-tools`
+- **Feishu 模板**：预置 channel 与 routing 结构
+
 ## 服务说明
 
 ### `openclaw-gateway`
@@ -526,50 +527,60 @@ docker compose exec openclaw-tools bash
 "default/gpt-5.4"
 ```
 
-## 常用命令
+## 目录结构
+
+```text
+.
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+├── README.md
+├── CHANGELOG.md
+├── LICENSE
+├── config/
+│   └── openclaw.json.example
+├── scripts/
+│   ├── init-data-dir.sh
+│   └── build-sandbox-image.sh
+└── docs/
+    └── open-source-manual.md
+```
+
+## 数据目录
+
+宿主机数据根目录默认是：
 
 ```bash
-# 查看服务状态
-docker compose ps
-
-# 查看网关日志
-docker compose logs -f openclaw-gateway
-
-# 查看网关运行状态
-docker compose run --rm openclaw-cli gateway status
-
-# 启动调试容器
-docker compose --profile tools up -d openclaw-tools
-
-# 进入调试容器
-docker compose exec openclaw-tools bash
+/Users/awk/lqf/openclaw_data
 ```
 
-## 常见问题
+初始化后主要包含：
 
-### 1. Docker socket 权限报错
+- `openclaw/openclaw.json`
+- `openclaw/workspace/agents/default`
+- `openclaw/workspace/agents/backend`
+- `openclaw/workspace/agents/frontend`
+- `openclaw/workspace/sandbox`
+- `openclaw/agents/<agent>/agent`
+- `cache`
+- `logs`
 
-如果看到：
+## 架构概览
 
-```text
-permission denied while trying to connect to the docker API
+```mermaid
+flowchart LR
+    U["Browser / Control UI"] --> G["openclaw-gateway"]
+    C["openclaw-cli"] --> G
+    T["openclaw-tools"] --> G
+    G --> P["Model Providers\nOpenAI Compatible / Claude / Gemini / Ollama"]
+    G --> S["Sandbox Containers\nopenclaw-sbx-*"]
+    G --> D["Host Data Root\nopenclaw.json / workspace / logs / cache"]
+    G --> K["/var/run/docker.sock"]
+    K --> DS["Docker Engine / Docker Desktop"]
+    S --> D
 ```
 
-说明容器内访问 Docker socket 的权限有问题。本项目已经通过 `group_add: ["0"]` 处理这一点。
-
-### 2. Docker Desktop 文件共享报错
-
-如果看到：
-
-```text
-mounts denied: path is not shared from the host
-```
-
-说明 sandbox 正在尝试挂载 Docker Desktop 未认可的路径。本项目当前通过宿主机绝对路径 `workspace` / `workspaceRoot` 方案处理了这个问题。
-
-### 3. 页面显示 `pairing required`
-
-说明当前浏览器设备还没有完成配对。这是首次接入时的正常安全流程。
+更完整的设计说明见：`docs/open-source-manual.md`
 
 ## 文档索引
 
@@ -604,7 +615,6 @@ mounts denied: path is not shared from the host
 - 官方 Sandboxing 文档：`https://docs.openclaw.ai/gateway/sandboxing`
 - 飞书通道文档：`https://docs.openclaw.ai/channels/feishu`
 - Channel routing 文档：`https://docs.openclaw.ai/channels/channel-routing`
-
 
 ## License
 
