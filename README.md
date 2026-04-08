@@ -46,14 +46,14 @@
 
 ```mermaid
 flowchart LR
-    U[Browser / Control UI] --> G[openclaw-gateway]
-    C[openclaw-cli] --> G
-    T[openclaw-tools] --> G
-    G --> P[Model Providers\nOpenAI Compatible / Claude / Gemini / Ollama]
-    G --> S[Sandbox Containers\nopenclaw-sbx-*]
-    G --> D[Host Data Root\nopenclaw.json / workspace / logs / cache]
-    G --> K[/var/run/docker.sock]
-    K --> DS[Docker Engine / Docker Desktop]
+    U["Browser / Control UI"] --> G["openclaw-gateway"]
+    C["openclaw-cli"] --> G
+    T["openclaw-tools"] --> G
+    G --> P["Model Providers\nOpenAI Compatible / Claude / Gemini / Ollama"]
+    G --> S["Sandbox Containers\nopenclaw-sbx-*"]
+    G --> D["Host Data Root\nopenclaw.json / workspace / logs / cache"]
+    G --> K["/var/run/docker.sock"]
+    K --> DS["Docker Engine / Docker Desktop"]
     S --> D
 ```
 
@@ -99,6 +99,33 @@ flowchart LR
 
 ## 快速开始
 
+先不要着急执行命令，先确认你的电脑已经准备好了 **Docker 环境**。
+
+### 0. 先准备 Docker 环境
+
+如果你是第一次接触这个项目，可以把它理解成：
+
+- `OpenClaw` 是要运行的程序
+- `Docker` 是用来装和运行这个程序的“容器工具”
+- 没有 Docker，这个项目就跑不起来
+
+如果你是 macOS 用户，推荐直接安装：
+
+- `Docker Desktop`
+
+安装完成后，请先打开 Docker Desktop，看到它正常启动，再继续下面的步骤。
+
+你可以用下面两条命令检查 Docker 是否已经准备好：
+
+```bash
+docker --version
+docker compose version
+```
+
+如果这两条命令都能正常输出版本号，就说明 Docker 环境已经准备好了。
+
+如果你这一步就报错，先不要继续下面的部署步骤，先把 `Docker Desktop` 安装并启动成功。
+
 如果你只想用**最短路径**把项目跑起来，直接执行下面这组命令：
 
 ```bash
@@ -125,6 +152,10 @@ http://localhost:18789
 - 输出访问地址和常用运维命令
 
 ### 1. 复制环境变量模板
+
+现在开始真正操作，按顺序来：
+
+**第一步：复制配置模板**
 
 ```bash
 cp .env.example .env
@@ -162,6 +193,17 @@ cp .env.example .env
 chmod +x bootstrap.sh
 ./bootstrap.sh
 ```
+
+如果你是完全第一次使用，可以把整个流程理解成下面这 8 步：
+
+1. 安装并启动 `Docker` / `Docker Desktop`
+2. 用 `docker --version` 和 `docker compose version` 检查 Docker 是否正常
+3. 下载这个项目到本地
+4. 执行 `cp .env.example .env`
+5. 按 `.env.example` 的说明填写你自己的 `.env`
+6. 执行 `chmod +x bootstrap.sh`
+7. 执行 `./bootstrap.sh`
+8. 打开浏览器访问 `http://localhost:18789`
 
 ### 2. 初始化宿主机数据目录
 

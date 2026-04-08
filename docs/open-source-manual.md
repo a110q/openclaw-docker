@@ -85,15 +85,15 @@
 
 ```mermaid
 flowchart LR
-    U[Browser / Control UI] --> G[openclaw-gateway]
-    C[openclaw-cli] --> G
-    T[openclaw-tools] --> G
-    G --> P[Model Providers\nOpenAI Compatible / Claude / Gemini / Ollama]
-    G --> S[Sandbox Containers\nopenclaw-sbx-*]
-    G --> D[Host Data Root\nopenclaw.json / workspace / logs / cache]
+    U["Browser / Control UI"] --> G["openclaw-gateway"]
+    C["openclaw-cli"] --> G
+    T["openclaw-tools"] --> G
+    G --> P["Model Providers\nOpenAI Compatible / Claude / Gemini / Ollama"]
+    G --> S["Sandbox Containers\nopenclaw-sbx-*"]
+    G --> D["Host Data Root\nopenclaw.json / workspace / logs / cache"]
     S --> D
-    G --> K[/var/run/docker.sock]
-    K --> DS[Docker Engine / Docker Desktop]
+    G --> K["/var/run/docker.sock"]
+    K --> DS["Docker Engine / Docker Desktop"]
 ```
 
 ### 5.2 架构说明
@@ -338,12 +338,42 @@ http://localhost:18789
 
 ### 11.1 前置要求
 
+在真正部署前，请先把这件事理解清楚：
+
+这个项目不是双击就能运行的软件，它依赖 Docker 环境。
+
+你可以把 Docker 理解成“运行 OpenClaw 的基础工具箱”。
+没有 Docker，这个项目无法启动。
+
+你至少需要准备：
+
 - macOS 或 Linux 主机
 - Docker / Docker Desktop
 - Docker Compose
 - 可用的模型 API Key 或 OpenAI Compatible 接口
 
+如果你是小白用户，建议这样检查：
+
+**第一步：安装 Docker Desktop**
+
+如果你是 macOS 用户，优先安装官方 `Docker Desktop`。
+安装后，先手动打开它，等它完全启动。
+
+**第二步：检查 Docker 是否正常**
+
+在终端执行：
+
+```bash
+docker --version
+docker compose version
+```
+
+如果两条命令都能输出版本号，说明 Docker 环境已经准备好了。
+如果命令报错，请先解决 Docker 安装问题，再继续部署这个项目。
+
 ### 11.2 基础部署步骤
+
+如果你是第一次接触 Docker 项目，建议按下面的顺序一步一步操作，不要跳步。
 
 1. 复制环境变量模板
 
@@ -386,6 +416,14 @@ docker compose ps
 docker compose logs -f openclaw-gateway
 docker compose run --rm openclaw-cli gateway status
 ```
+
+7. 打开浏览器
+
+```text
+http://localhost:18789
+```
+
+如果你看到页面，说明项目已经真正跑起来了。
 
 ---
 
