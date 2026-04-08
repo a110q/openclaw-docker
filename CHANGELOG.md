@@ -13,11 +13,13 @@ The format is loosely based on Keep a Changelog, and this project currently trac
 - Added OpenAI Compatible base URL support through `.env`
 - Added comprehensive open source manual in `docs/open-source-manual.md`
 - Added `bootstrap.sh` for low-friction first-time deployment
+- Added `scripts/bootstrap-first-control-ui-admin.sh` to bootstrap the first Control UI admin browser in pairing mode
 
 ### Changed
 - Updated Compose services to support Docker socket access on macOS Docker Desktop
 - Updated sandbox workspace paths to use host-visible absolute paths
 - Improved README for open source publishing and GitHub onboarding
+- Expanded login and pairing documentation to explain Mode A, Mode B, and first-admin bootstrap flow
 
 ### Fixed
 - Fixed sandbox Docker permission issue caused by socket group access
