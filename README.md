@@ -130,12 +130,31 @@ http://localhost:18789
 cp .env.example .env
 ```
 
+请先理解这两个文件的区别：
+
+- `.env.example`：仓库里的公开示例模板，可以提交到 GitHub
+- `.env`：你本机的真实运行配置，**不能上传到 GitHub**
+
+`.env.example` 现在已经提供了可直接参考的填写示例，但里面所有地址、token、API Key 都是示意值。
+你应该基于它复制出自己的 `.env`，然后把真实值填进 `.env`，而不是反过来修改并提交 `.env`。
+
 至少修改：
 
 - `OPENCLAW_GATEWAY_TOKEN`
 - `OPENAI_COMPATIBLE_BASE_URL`
 - `OPENAI_COMPATIBLE_API_KEY`
 - `OPENCLAW_RUN_USER`（如果你的本机 UID:GID 不是 `501:20`）
+
+推荐填写方式：
+
+- `OPENCLAW_GATEWAY_TOKEN`：填写你自己生成的长随机串
+- `OPENAI_COMPATIBLE_BASE_URL`：填写你自己的 OpenAI Compatible 接口地址，例如 `http://your-openai-compatible-host:3000/v1`
+- `OPENAI_COMPATIBLE_API_KEY`：填写你自己的真实 API Key
+
+注意：
+
+- 不要把你本机 `.env` 中的真实 IP、真实 token、真实 API Key 提交到仓库
+- `.env.example` 只应该保留占位符或公开示例值
 
 如果你已经填好这些值，可以直接执行：
 
@@ -318,6 +337,7 @@ mounts denied: path is not shared from the host
 
 - 不提交真实 `.env`
 - 不提交真实 API Key / Gateway Token / Feishu Secret
+- `.env.example` 中只保留公开示例，不保留真实 IP、真实 token、真实 key
 - 如有泄漏历史，先轮换密钥再发布
 
 ## 路线图
