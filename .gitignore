@@ -1,0 +1,11 @@
+.DS_Store
+.env
+.env.local
+.env.*.local
+.idea/
+.vscode/
+.playwright-cli/
+output/
+*.log
+
+docs/superpowers/

@@ -1,0 +1,253 @@
+{
+  "update": {
+    "checkOnStart": false
+  },
+  "browser": {
+    "headless": true,
+    "noSandbox": true,
+    "defaultProfile": "openclaw"
+  },
+  "gateway": {
+    "mode": "local",
+    "bind": "lan",
+    "auth": {
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    },
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "http://127.0.0.1:18789"
+      ]
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "default": {
+        "baseUrl": "${OPENAI_COMPATIBLE_BASE_URL}",
+        "apiKey": "${OPENAI_COMPATIBLE_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "gpt-5.4",
+            "name": "Primary OpenAI-Compatible Model",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "claude": {
+        "baseUrl": "https://api.anthropic.com",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "claude-sonnet-4-5",
+            "name": "Claude Sonnet 4.5",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "gemini": {
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "apiKey": "${GEMINI_API_KEY}",
+        "api": "google-generative-ai",
+        "models": [
+          {
+            "id": "gemini-2.5-pro",
+            "name": "Gemini 2.5 Pro",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "ollama": {
+        "baseUrl": "http://host.docker.internal:11434/v1",
+        "apiKey": "ollama",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "qwen2.5-coder:latest",
+            "name": "Ollama Local Model",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 32768,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "default/gpt-5.4"
+      },
+      "imageModel": {
+        "primary": "default/gpt-5.4"
+      },
+      "workspace": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/workspace/agents/default",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "sandbox": {
+        "mode": "all",
+        "scope": "agent",
+        "workspaceAccess": "rw",
+        "workspaceRoot": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/workspace/sandbox",
+        "docker": {
+          "image": "openclaw-sandbox-common:bookworm-slim",
+          "network": "none"
+        }
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    },
+    "list": [
+      {
+        "id": "default",
+        "default": true,
+        "name": "Default",
+        "workspace": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/workspace/agents/default",
+        "agentDir": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/agents/default/agent"
+      },
+      {
+        "id": "backend",
+        "name": "Backend",
+        "workspace": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/workspace/agents/backend",
+        "agentDir": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/agents/backend/agent",
+        "model": {
+          "primary": "default/gpt-5.4"
+        }
+      },
+      {
+        "id": "frontend",
+        "name": "Frontend",
+        "workspace": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/workspace/agents/frontend",
+        "agentDir": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/agents/frontend/agent",
+        "model": {
+          "primary": "default/gpt-5.4"
+        }
+      }
+    ]
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "tools": {
+    "profile": "full",
+    "sessions": {
+      "visibility": "all"
+    },
+    "fs": {
+      "workspaceOnly": true
+    },
+    "exec": {
+      "applyPatch": {
+        "workspaceOnly": true
+      }
+    }
+  },
+  "channels": {
+    "feishu": {
+      "enabled": false,
+      "connectionMode": "websocket",
+      "defaultAccount": "default",
+      "dmPolicy": "pairing",
+      "groupPolicy": "allowlist",
+      "requireMention": true,
+      "groupAllowFrom": [],
+      "streaming": true,
+      "blockStreaming": true,
+      "typingIndicator": true,
+      "resolveSenderNames": true,
+      "accounts": {
+        "default": {
+          "appId": "${FEISHU_APP_ID}",
+          "appSecret": "${FEISHU_APP_SECRET}",
+          "name": "OpenClaw Bot"
+        }
+      },
+      "groups": {
+        "oc_backend_group_id": {
+          "enabled": true,
+          "requireMention": true
+        },
+        "oc_frontend_group_id": {
+          "enabled": true,
+          "requireMention": true
+        }
+      }
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "backend",
+      "match": {
+        "channel": "feishu",
+        "peer": {
+          "kind": "group",
+          "id": "oc_backend_group_id"
+        }
+      }
+    },
+    {
+      "agentId": "frontend",
+      "match": {
+        "channel": "feishu",
+        "peer": {
+          "kind": "group",
+          "id": "oc_frontend_group_id"
+        }
+      }
+    }
+  ]
+}
