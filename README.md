@@ -239,6 +239,210 @@ docker compose run --rm openclaw-cli gateway status
 http://localhost:18789
 ```
 
+## 重启后如何重新登录
+
+如果你电脑重启了，或者 `Docker Desktop` 重启了，不需要重新部署整个项目，按下面步骤重新进入即可。
+
+### 1. 先启动网关
+
+进入项目目录：
+
+```bash
+cd /Users/awk/lqf/code/openclaw_docker
+```
+
+启动服务：
+
+```bash
+docker compose up -d openclaw-gateway
+```
+
+检查服务是否正常：
+
+```bash
+docker compose ps
+docker compose logs --tail=30 openclaw-gateway
+```
+
+### 2. 打开登录页面
+
+浏览器访问：
+
+```text
+http://localhost:18789
+```
+
+页面里一般要填写下面 3 项：
+
+- `WebSocket URL`：本机部署填写 `ws://localhost:18789`
+- `Gateway Token`：来自你本机 `.env` 文件中的 `OPENCLAW_GATEWAY_TOKEN`
+- `Password`：当前项目里可留空
+
+### 3. 如何获取 `Gateway Token`
+
+直接在项目目录执行：
+
+```bash
+grep '^OPENCLAW_GATEWAY_TOKEN=' .env
+```
+
+你会看到类似：
+
+```text
+OPENCLAW_GATEWAY_TOKEN=your_gateway_token_here
+```
+
+把等号后面的内容复制到页面里的 `Gateway Token` 输入框即可。
+
+### 4. 常见情况说明
+
+#### 当前提供两种登录模式
+
+本项目支持两种浏览器登录模式：
+
+- **模式 A：`token + pairing`**
+  - 用户先输入 `Gateway Token`
+  - 如果是新浏览器，还需要管理员批准这次设备配对
+  - 更安全，适合多人使用或你希望控制谁能进后台
+
+- **模式 B：仅 `token` 登录**
+  - 用户只需要填写 `Gateway Token`
+  - 不再要求浏览器设备配对
+  - 更省事，适合**单人、本机、受控环境**
+
+本项目当前已经按 **模式 B** 配置当前实例。
+
+#### 为什么模式 A 不会“第一次自动接受任何设备”
+
+不会这样设计。
+
+原因很简单：如果“第一次打开页面的任意浏览器”都会自动成为管理员，那么谁先访问控制台，谁就直接拿到后台权限。
+
+在 `lan` 绑定、局域网访问、或多人共享环境里，这个风险非常高。
+
+因此，模式 A 的正确思路不是“自动接受第一个设备”，而是：
+
+- 第一个可信浏览器由**本机管理员**引导批准
+- 后续其他浏览器继续走正常 pairing 审批流程
+
+这也是下面这个“首次管理员浏览器引导脚本”的作用。
+
+#### 模式 A：第一次怎么让管理员浏览器进去
+
+如果你想保留更安全的 **模式 A**，但又要解决“第一个浏览器没有已授权设备可批准”的问题，可以使用：
+
+```bash
+./scripts/bootstrap-first-control-ui-admin.sh
+```
+
+使用方式：
+
+1. 先确保 `dangerouslyDisableDeviceAuth` 为 `false`
+2. 启动网关：`docker compose up -d openclaw-gateway`
+3. 在终端运行：`./scripts/bootstrap-first-control-ui-admin.sh`
+4. 在浏览器打开 `http://localhost:18789`
+5. 填入 `Gateway Token`
+6. 点一次 `Connect`
+
+脚本会等待这条“第一个浏览器”的待配对请求，并将其批准为首个管理员浏览器。
+
+注意：
+
+- 这个脚本**只适用于还没有任何已配对 Control UI 浏览器**的情况
+- 一旦已经有浏览器配对成功，后续新增设备就应该走正常 pairing 审批
+
+#### 如何启用模式 B
+
+编辑运行中的配置文件：
+
+```bash
+/Users/awk/lqf/openclaw_data/openclaw/openclaw.json
+```
+
+把 `gateway.controlUi` 改成类似这样：
+
+```json
+"controlUi": {
+  "allowedOrigins": [
+    "http://localhost:18789",
+    "http://127.0.0.1:18789"
+  ],
+  "dangerouslyDisableDeviceAuth": true
+}
+```
+
+然后重启网关：
+
+```bash
+docker compose restart openclaw-gateway
+```
+
+#### 第一次登录怎么进去
+
+- 如果你使用 **模式 A**：
+  - 第一次登录时，输入 `Gateway Token` 后，页面可能会显示 `pairing required`
+  - 这时需要管理员或已授权设备批准这次配对
+  - 如果这是第一台管理员浏览器，可以先运行：`./scripts/bootstrap-first-control-ui-admin.sh`
+
+- 如果你使用 **模式 B**：
+  - 第一次登录**不需要已有授权**
+  - 只要服务已经启动，直接输入 `Gateway Token` 就可以进入
+
+#### 情况 A：提示 `pairing required`
+
+这表示当前浏览器还没有完成设备配对，不代表服务坏了。
+
+相关文件在：
+
+- 已配对设备：`/Users/awk/lqf/openclaw_data/openclaw/devices/paired.json`
+- 待批准设备：`/Users/awk/lqf/openclaw_data/openclaw/devices/pending.json`
+
+如果你之前登录过，但现在又出现这个提示，通常是：
+
+- 换了浏览器
+- 开了无痕模式
+- 清除了浏览器本地站点数据
+- 浏览器生成了新的设备身份
+
+如果你当前使用的是 **模式 A**，并且这是第一台要进入后台的管理员浏览器，可以在本机执行：
+
+```bash
+./scripts/bootstrap-first-control-ui-admin.sh
+```
+
+然后回到浏览器刷新页面，再点一次 `Connect`。
+
+#### 情况 B：提示 `too many failed authentication attempts`
+
+这表示前面输错了太多次 token。
+
+处理方式：
+
+- 先不要继续反复点 `Connect`
+- 确认你填写的是 `.env` 里的真实 `OPENCLAW_GATEWAY_TOKEN`
+- 等几分钟后再试
+- 或重启网关后再试：
+
+```bash
+docker compose restart openclaw-gateway
+```
+
+### 5. 最短恢复步骤
+
+如果你只是想最快重新进去，直接照抄下面命令：
+
+```bash
+cd /Users/awk/lqf/code/openclaw_docker
+docker compose up -d openclaw-gateway
+grep '^OPENCLAW_GATEWAY_TOKEN=' .env
+```
+
+然后在页面填写：
+
+- `WebSocket URL`：`ws://localhost:18789`
+- `Gateway Token`：上一步命令输出的等号后内容
+- `Password`：留空
+
 ## 服务说明
 
 ### `openclaw-gateway`

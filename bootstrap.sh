@@ -63,5 +63,8 @@ Next steps:
 - Follow logs: docker compose logs -f openclaw-gateway
 - Gateway status: docker compose run --rm openclaw-cli gateway status
 
-If this is your first browser session, you may still need to complete gateway token entry and device pairing.
+Login modes:
+- Mode B (`dangerouslyDisableDeviceAuth=true`): first browser login only needs the Gateway Token.
+- Mode A (`token + pairing`): first browser login needs pairing approval. To bootstrap the first admin browser safely, run:
+  ./scripts/bootstrap-first-control-ui-admin.sh
 OUT

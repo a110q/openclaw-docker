@@ -515,6 +515,10 @@ docker compose exec openclaw-tools bash
 
 ## 13. 首次访问与配对说明
 
+浏览器访问 Control UI 时，可以有两种登录模式。
+
+### 13.1 模式 A：`token + pairing`
+
 首次通过浏览器访问 Control UI 时，常见会经历两步：
 
 1. 提供 `gateway token`
@@ -528,6 +532,87 @@ docker compose exec openclaw-tools bash
 - `pairing required`
 
 说明认证流程尚未完成。
+
+这里需要特别说明：
+
+- 模式 A **不会**默认“自动接受第一次打开页面的任意设备”
+- 否则谁先打开页面，谁就会直接拿到管理员权限
+- 在局域网或多人环境里，这种行为风险过高
+
+因此，模式 A 的首次进入逻辑应该是：
+
+- 由本机管理员批准第一台可信浏览器
+- 或使用“首次管理员浏览器引导脚本”完成第一次引导
+
+首次管理员浏览器引导脚本：
+
+```bash
+./scripts/bootstrap-first-control-ui-admin.sh
+```
+
+推荐操作顺序：
+
+1. 确认 `dangerouslyDisableDeviceAuth` 为 `false`
+2. 启动网关：`docker compose up -d openclaw-gateway`
+3. 在终端执行：`./scripts/bootstrap-first-control-ui-admin.sh`
+4. 浏览器打开 `http://localhost:18789`
+5. 输入 `Gateway Token`
+6. 点击 `Connect`
+
+脚本会等待第一条来自 Control UI 浏览器的待配对请求，并将它批准为第一台管理员浏览器。
+
+这个脚本只适用于：
+
+- 当前还没有任何已配对的 Control UI 浏览器设备
+- 你希望继续保留模式 A，而不是切到模式 B
+
+### 13.2 模式 B：仅 `token` 登录
+
+如果你希望把“是否配对”这一步省掉，让最终用户只输入 `Gateway Token` 就能进入 Control UI，可以启用：
+
+```json
+"gateway": {
+  "controlUi": {
+    "dangerouslyDisableDeviceAuth": true
+  }
+}
+```
+
+更完整示例：
+
+```json
+"controlUi": {
+  "allowedOrigins": [
+    "http://localhost:18789",
+    "http://127.0.0.1:18789"
+  ],
+  "dangerouslyDisableDeviceAuth": true
+}
+```
+
+配置文件位置：
+
+```bash
+/Users/awk/lqf/openclaw_data/openclaw/openclaw.json
+```
+
+启用后需要重启网关：
+
+```bash
+docker compose restart openclaw-gateway
+```
+
+启用模式 B 后：
+
+- 用户第一次登录时**不需要已有授权设备**
+- 用户只需要知道 `Gateway Token`
+- 页面里填入正确的 `ws://localhost:18789` 和 `Gateway Token` 即可进入
+
+但是要注意：
+
+- 这个开关名字里带 `dangerously`，说明它有明确安全风险
+- 更适合**单人、本机、受控环境**
+- 如果你准备给多人共用，或者暴露到局域网 / 公网，不建议开启
 
 ---
 
@@ -559,6 +644,12 @@ docker compose exec openclaw-tools bash
 
 - 使用 CLI 执行 pairing 相关操作
 - 或在已有设备批准机制中放行该浏览器设备
+
+如果这是第一台管理员浏览器，且你仍然使用模式 A，可以直接执行：
+
+```bash
+./scripts/bootstrap-first-control-ui-admin.sh
+```
 
 ### 14.4 模型接口可以 `/models` 成功，但聊天无响应
 
