@@ -4,14 +4,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    user: ${OPENCLAW_RUN_USER:-501:20}
+    user: ${OPENCLAW_RUN_USER:-1000:1000}
     group_add:
       - "0"
     environment:
       HOME: /home/node
       TERM: xterm-256color
       TZ: ${OPENCLAW_TZ:-Asia/Shanghai}
-      OPENCLAW_HOST_DATA_ROOT: ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}
+      OPENCLAW_HOST_DATA_ROOT: ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-https://api.openai.com/v1}
       OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-}
@@ -20,9 +20,9 @@ services:
       FEISHU_APP_ID: ${FEISHU_APP_ID:-}
       FEISHU_APP_SECRET: ${FEISHU_APP_SECRET:-}
     volumes:
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}/openclaw:/home/node/.openclaw
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}/cache:/home/node/.cache
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}:${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/openclaw:/home/node/.openclaw
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/cache:/home/node/.cache
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}:${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -56,7 +56,7 @@ services:
 
   openclaw-cli:
     image: ${OPENCLAW_IMAGE:-openclaw-local:2026.4.5-sandbox}
-    user: ${OPENCLAW_RUN_USER:-501:20}
+    user: ${OPENCLAW_RUN_USER:-1000:1000}
     group_add:
       - "0"
     network_mode: service:openclaw-gateway
@@ -70,7 +70,7 @@ services:
       TERM: xterm-256color
       TZ: ${OPENCLAW_TZ:-Asia/Shanghai}
       BROWSER: echo
-      OPENCLAW_HOST_DATA_ROOT: ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}
+      OPENCLAW_HOST_DATA_ROOT: ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-https://api.openai.com/v1}
       OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-}
@@ -79,9 +79,9 @@ services:
       FEISHU_APP_ID: ${FEISHU_APP_ID:-}
       FEISHU_APP_SECRET: ${FEISHU_APP_SECRET:-}
     volumes:
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}/openclaw:/home/node/.openclaw
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}/cache:/home/node/.cache
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}:${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/openclaw:/home/node/.openclaw
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/cache:/home/node/.cache
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}:${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock
     stdin_open: true
     tty: true
@@ -92,7 +92,7 @@ services:
 
   openclaw-tools:
     image: ${OPENCLAW_IMAGE:-openclaw-local:2026.4.5-sandbox}
-    user: ${OPENCLAW_RUN_USER:-501:20}
+    user: ${OPENCLAW_RUN_USER:-1000:1000}
     group_add:
       - "0"
     profiles:
@@ -101,7 +101,7 @@ services:
       HOME: /home/node
       TERM: xterm-256color
       TZ: ${OPENCLAW_TZ:-Asia/Shanghai}
-      OPENCLAW_HOST_DATA_ROOT: ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}
+      OPENCLAW_HOST_DATA_ROOT: ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-https://api.openai.com/v1}
       OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-}
@@ -110,9 +110,9 @@ services:
       FEISHU_APP_ID: ${FEISHU_APP_ID:-}
       FEISHU_APP_SECRET: ${FEISHU_APP_SECRET:-}
     volumes:
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}/openclaw:/home/node/.openclaw
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}/cache:/home/node/.cache
-      - ${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}:${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/openclaw:/home/node/.openclaw
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/cache:/home/node/.cache
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}:${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}
       - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock
     extra_hosts:
       - host.docker.internal:host-gateway

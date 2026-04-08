@@ -27,11 +27,13 @@
 - `Docker` 是用来装和运行这个程序的“容器工具”
 - 没有 Docker，这个项目就跑不起来
 
-如果你是 macOS 用户，推荐直接安装：
+按操作系统区分：
 
-- `Docker Desktop`
+- `macOS`：安装 `Docker Desktop`
+- `Windows`：安装 `Docker Desktop`
+- `Linux`：安装 `Docker Engine` + `Docker Compose`
 
-安装完成后，请先打开 Docker Desktop，看到它正常启动，再继续下面的步骤。
+安装完成后，请先确认 Docker 已经真正启动，再继续下面的步骤。
 
 你可以用下面两条命令检查 Docker 是否已经准备好：
 
@@ -42,7 +44,7 @@ docker compose version
 
 如果这两条命令都能正常输出版本号，就说明 Docker 环境已经准备好了。
 
-如果你这一步就报错，先不要继续下面的部署步骤，先把 `Docker Desktop` 安装并启动成功。
+如果你这一步就报错，先不要继续下面的部署步骤，先把 Docker 环境安装并启动成功。
 
 如果你只想用**最短路径**把项目跑起来，直接执行下面这组命令：
 
@@ -89,16 +91,24 @@ cp .env.example .env
 
 至少修改：
 
+- `OPENCLAW_HOST_DATA_ROOT`
 - `OPENCLAW_GATEWAY_TOKEN`
 - `OPENAI_COMPATIBLE_BASE_URL`
 - `OPENAI_COMPATIBLE_API_KEY`
-- `OPENCLAW_RUN_USER`（如果你的本机 UID:GID 不是 `501:20`）
+- `OPENCLAW_RUN_USER`
 
 推荐填写方式：
 
+- `OPENCLAW_HOST_DATA_ROOT`：必须填写你自己机器上的绝对路径
+  - `macOS`：`/Users/yourname/openclaw_data`
+  - `Linux`：`/home/yourname/openclaw_data`
+  - `Windows`：`C:/Users/yourname/openclaw_data`
 - `OPENCLAW_GATEWAY_TOKEN`：填写你自己生成的长随机串
 - `OPENAI_COMPATIBLE_BASE_URL`：填写你自己的 OpenAI Compatible 接口地址，例如 `http://your-openai-compatible-host:3000/v1`
 - `OPENAI_COMPATIBLE_API_KEY`：填写你自己的真实 API Key
+- `OPENCLAW_RUN_USER`：
+  - `macOS` / `Linux`：运行 `id -u` 和 `id -g`，按 `UID:GID` 填写
+  - `Windows`：先保留 `.env.example` 里的 `1000:1000`，只有遇到权限问题再调整
 
 注意：
 
@@ -163,10 +173,10 @@ http://localhost:18789
 
 ### 1. 先启动网关
 
-进入项目目录：
+进入你自己的项目目录：
 
 ```bash
-cd /Users/awk/lqf/code/openclaw_docker
+cd <your-project-dir>
 ```
 
 启动服务：
@@ -274,7 +284,7 @@ OPENCLAW_GATEWAY_TOKEN=your_gateway_token_here
 编辑运行中的配置文件：
 
 ```bash
-/Users/awk/lqf/openclaw_data/openclaw/openclaw.json
+<OPENCLAW_HOST_DATA_ROOT>/openclaw/openclaw.json
 ```
 
 把 `gateway.controlUi` 改成类似这样：
@@ -312,8 +322,8 @@ docker compose restart openclaw-gateway
 
 相关文件在：
 
-- 已配对设备：`/Users/awk/lqf/openclaw_data/openclaw/devices/paired.json`
-- 待批准设备：`/Users/awk/lqf/openclaw_data/openclaw/devices/pending.json`
+- 已配对设备：`<OPENCLAW_HOST_DATA_ROOT>/openclaw/devices/paired.json`
+- 待批准设备：`<OPENCLAW_HOST_DATA_ROOT>/openclaw/devices/pending.json`
 
 如果你之前登录过，但现在又出现这个提示，通常是：
 
@@ -350,7 +360,7 @@ docker compose restart openclaw-gateway
 如果你只是想最快重新进去，直接照抄下面命令：
 
 ```bash
-cd /Users/awk/lqf/code/openclaw_docker
+cd <your-project-dir>
 docker compose up -d openclaw-gateway
 grep '^OPENCLAW_GATEWAY_TOKEN=' .env
 ```
@@ -417,6 +427,7 @@ mounts denied: path is not shared from the host
 - 支持 OpenAI Compatible 接口接入 `gpt-5.4` 等模型
 - 预留 Anthropic、Gemini、Ollama、Feishu 配置模板
 - 兼容 macOS Docker Desktop 下的 Docker socket 与文件共享限制
+- 补充 Windows / Linux 路径示例，避免宿主机目录配置踩坑
 
 ## 适用场景
 
@@ -503,7 +514,7 @@ docker compose exec openclaw-tools bash
 请直接编辑：
 
 ```bash
-/Users/awk/lqf/openclaw_data/openclaw/openclaw.json
+<OPENCLAW_HOST_DATA_ROOT>/openclaw/openclaw.json
 ```
 
 ### 预置 agent
@@ -551,8 +562,14 @@ docker compose exec openclaw-tools bash
 宿主机数据根目录默认是：
 
 ```bash
-/Users/awk/lqf/openclaw_data
+<OPENCLAW_HOST_DATA_ROOT>
 ```
+
+推荐示例：
+
+- `macOS`：`/Users/yourname/openclaw_data`
+- `Linux`：`/home/yourname/openclaw_data`
+- `Windows`：`C:/Users/yourname/openclaw_data`
 
 初始化后主要包含：
 

@@ -64,7 +64,7 @@
 
 本项目适合以下场景：
 
-- 在 macOS Docker Desktop 上本机部署 `OpenClaw`
+- 在 macOS / Linux / Windows 上本机部署 `OpenClaw`
 - 在局域网内暴露 `OpenClaw` 仪表盘与网关能力
 - 需要多个 agent 分工协作的本地 AI 工作流
 - 需要让 agent 在 Docker sandbox 中安全执行命令
@@ -147,8 +147,14 @@ flowchart LR
 项目将运行数据统一放入：
 
 ```bash
-/Users/awk/lqf/openclaw_data
+<OPENCLAW_HOST_DATA_ROOT>
 ```
+
+常见示例：
+
+- `macOS`：`/Users/yourname/openclaw_data`
+- `Linux`：`/home/yourname/openclaw_data`
+- `Windows`：`C:/Users/yourname/openclaw_data`
 
 在这个目录下，主要包含：
 
@@ -347,17 +353,20 @@ http://localhost:18789
 
 你至少需要准备：
 
-- macOS 或 Linux 主机
+- macOS / Linux / Windows 主机
 - Docker / Docker Desktop
 - Docker Compose
 - 可用的模型 API Key 或 OpenAI Compatible 接口
 
 如果你是小白用户，建议这样检查：
 
-**第一步：安装 Docker Desktop**
+**第一步：安装 Docker 环境**
 
-如果你是 macOS 用户，优先安装官方 `Docker Desktop`。
-安装后，先手动打开它，等它完全启动。
+- `macOS`：优先安装官方 `Docker Desktop`
+- `Windows`：优先安装官方 `Docker Desktop`
+- `Linux`：安装 `Docker Engine` 和 `Docker Compose`
+
+安装后，先确认 Docker 已经完全启动。
 
 **第二步：检查 Docker 是否正常**
 
@@ -385,9 +394,24 @@ cp .env.example .env
 
 至少填写：
 
+- `OPENCLAW_HOST_DATA_ROOT`
 - `OPENCLAW_GATEWAY_TOKEN`
 - `OPENAI_COMPATIBLE_BASE_URL`
 - `OPENAI_COMPATIBLE_API_KEY`
+- `OPENCLAW_RUN_USER`
+
+推荐写法：
+
+- `macOS`：`OPENCLAW_HOST_DATA_ROOT=/Users/yourname/openclaw_data`
+- `Linux`：`OPENCLAW_HOST_DATA_ROOT=/home/yourname/openclaw_data`
+- `Windows`：`OPENCLAW_HOST_DATA_ROOT=C:/Users/yourname/openclaw_data`
+
+如果你是 Windows 用户，请在 `.env` 里使用正斜杠 `/`，不要写成反斜杠 `\\`。
+
+其中：
+
+- `macOS` / `Linux`：建议用 `id -u` 和 `id -g` 的结果填写 `OPENCLAW_RUN_USER`
+- `Windows`：可先保留 `.env.example` 中的 `1000:1000`，只有遇到权限问题再调整
 
 3. 初始化宿主机数据目录
 
@@ -499,9 +523,9 @@ docker compose exec openclaw-tools bash
 建议备份以下目录：
 
 ```bash
-/Users/awk/lqf/openclaw_data/openclaw
-/Users/awk/lqf/openclaw_data/cache
-/Users/awk/lqf/openclaw_data/logs
+<OPENCLAW_HOST_DATA_ROOT>/openclaw
+<OPENCLAW_HOST_DATA_ROOT>/cache
+<OPENCLAW_HOST_DATA_ROOT>/logs
 ```
 
 重点文件包括：
@@ -593,7 +617,7 @@ docker compose exec openclaw-tools bash
 配置文件位置：
 
 ```bash
-/Users/awk/lqf/openclaw_data/openclaw/openclaw.json
+<OPENCLAW_HOST_DATA_ROOT>/openclaw/openclaw.json
 ```
 
 启用后需要重启网关：

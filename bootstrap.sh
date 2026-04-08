@@ -31,7 +31,7 @@ require_non_placeholder() {
   value="$(read_env_value "$key")"
   [ -n "$value" ] || fail "Missing required value: $key"
   case "$value" in
-    CHANGE_ME_LONG_RANDOM_TOKEN|YOUR_*|cli_xxx)
+    CHANGE_ME_LONG_RANDOM_TOKEN|CHANGE_ME_ABSOLUTE_HOST_DATA_ROOT|YOUR_*|cli_xxx)
       fail "The value for $key is still a placeholder. Please edit .env before running bootstrap."
       ;;
   esac
@@ -45,6 +45,7 @@ run_step() {
 }
 
 require_file "$ENV_FILE" "Missing .env. Run: cp .env.example .env"
+require_non_placeholder "OPENCLAW_HOST_DATA_ROOT"
 require_non_placeholder "OPENCLAW_GATEWAY_TOKEN"
 require_non_placeholder "OPENAI_COMPATIBLE_API_KEY"
 

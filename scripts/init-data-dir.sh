@@ -10,7 +10,17 @@ if [ -f "$PROJECT_DIR/.env" ]; then
   set +a
 fi
 
-HOST_DATA_ROOT="${OPENCLAW_HOST_DATA_ROOT:-/Users/awk/lqf/openclaw_data}"
+HOST_DATA_ROOT="${OPENCLAW_HOST_DATA_ROOT:-}"
+
+if [ -z "$HOST_DATA_ROOT" ] || [ "$HOST_DATA_ROOT" = "CHANGE_ME_ABSOLUTE_HOST_DATA_ROOT" ]; then
+  echo "[init-data-dir] ERROR: OPENCLAW_HOST_DATA_ROOT is not configured." >&2
+  echo "Please edit .env first." >&2
+  echo "Examples:" >&2
+  echo "- macOS:   /Users/yourname/openclaw_data" >&2
+  echo "- Linux:   /home/yourname/openclaw_data" >&2
+  echo "- Windows: C:/Users/yourname/openclaw_data" >&2
+  exit 1
+fi
 OPENCLAW_DIR="$HOST_DATA_ROOT/openclaw"
 CACHE_DIR="$HOST_DATA_ROOT/cache"
 LOGS_DIR="$HOST_DATA_ROOT/logs"
