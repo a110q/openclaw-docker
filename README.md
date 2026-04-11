@@ -1,12 +1,24 @@
 # OpenClaw Docker
 
+<p align="center">
+  <img src="docs/assets/repo-cover.png" alt="OpenClaw Docker cover" width="100%" />
+</p>
+
+<p align="center">
+  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-7C3AED"></a>
+  <img alt="OpenClaw" src="https://img.shields.io/badge/OpenClaw-2026.4.5-2563EB">
+  <img alt="Docker Compose" src="https://img.shields.io/badge/Docker%20Compose-ready-0F766E">
+  <img alt="Admin UI" src="https://img.shields.io/badge/Admin%20UI-built-111827">
+  <img alt="Chinese Docs" src="https://img.shields.io/badge/Docs-中文友好-F59E0B">
+</p>
+
 > 想把 `OpenClaw` 稳定跑在自己电脑或局域网里，但又不想被 `Docker`、配置文件、数据目录、后台运维和各种奇怪问题反复折腾？
-> 
+>
 > 这个项目就是为这件事准备的：它不是 `OpenClaw` 核心源码，而是一套**更适合真实落地**的本地部署与运维方案。
-> 
+>
 > 你可以把它理解成：**帮你把 OpenClaw 从“能跑”整理成“好用、可维护、方便继续改”**。
 
-## 这是什么
+## 一眼看懂
 
 `OpenClaw Docker` 是一个围绕官方 `OpenClaw` 运行时镜像构建的部署工程，重点解决这些新手最容易踩坑的问题：
 
@@ -59,6 +71,38 @@
   - 在保留 sandbox 的前提下补足容器做不到的宿主机动作
 - `Control UI` 中文 / 双语 overlay
   - 更适合中文用户直接使用和继续改造
+
+## 架构总览
+
+<p align="center">
+  <img src="docs/assets/architecture.png" alt="OpenClaw Docker architecture" width="100%" />
+</p>
+
+这套工程不是简单把几个容器拼起来，而是明确拆成三层：
+
+- **部署层**：`.env`、`docker-compose.yml`、构建脚本
+- **运行层**：`openclaw-gateway`、`openclaw-admin-ui`、`openclaw-clawswarm`、`openclaw-mysql`
+- **数据层**：宿主机数据根目录，统一保存配置、日志、缓存、工作区和后台状态
+
+这样做的好处是：
+
+- 新手更容易理解“改哪里、重启哪里、数据放哪里”
+- 后续继续做平台化改造时，不容易把主链路搞乱
+- 出问题时更容易按层排查，而不是全仓库乱翻
+
+## 界面截图
+
+<p align="center">
+  <img src="docs/assets/screens/platform-home.png" alt="Platform home" width="32%" />
+  <img src="docs/assets/screens/admin-login.png" alt="Admin login" width="32%" />
+  <img src="docs/assets/screens/control-ui.png" alt="Control UI" width="32%" />
+</p>
+
+你现在可以从三个入口理解这个项目：
+
+- `http://localhost:18789`：`Gateway / Control UI`
+- `http://localhost:18889/`：平台入口
+- `http://localhost:18889/ops/login`：运维后台入口
 
 ## 项目结构
 
@@ -137,6 +181,19 @@ cp .env.example .env
 - `OPENCLAW_RUN_USER`
 - `OPENCLAW_ADMIN_UI_TOKEN`
 
+### 3）按中文说明填写关键配置
+
+下面这些配置最关键，也是新手最容易看不懂的部分：
+
+| 变量名 | 中文意思 | 你应该填什么 | 示例 |
+| --- | --- | --- | --- |
+| `OPENCLAW_HOST_DATA_ROOT` | **宿主机数据根目录**。所有运行时配置、工作区、日志、缓存都会放这里。 | 一个你自己机器上的**绝对路径**。 | macOS：`/Users/yourname/openclaw_data` |
+| `OPENCLAW_GATEWAY_TOKEN` | **Gateway 访问令牌**。可以理解成网关层的“通行密钥”。 | 一段随机长字符串。 | `openssl rand -hex 24` |
+| `OPENAI_COMPATIBLE_BASE_URL` | **上游模型接口地址**。也就是 OpenClaw 实际调用模型时去访问的 API 基地址。 | 你自己的 OpenAI-compatible 服务地址。 | `https://your-provider.example.com/v1` |
+| `OPENAI_COMPATIBLE_API_KEY` | **上游模型接口密钥**。用来访问上面那个模型接口。 | 你的 Provider / 网关发给你的 API Key。 | `sk-xxxx` |
+| `OPENCLAW_RUN_USER` | **容器运行用户映射**。解决宿主机文件权限和 Docker Socket 权限问题。 | 一般填 `UID:GID`。 | macOS 常见：`501:20`；Linux 常见：`1000:1000` |
+| `OPENCLAW_ADMIN_UI_TOKEN` | **后台管理令牌**。用于保护后台运维接口。 | 一段随机长字符串，和 Gateway Token 分开。 | `openssl rand -hex 24` |
+
 常用辅助命令：
 
 ```bash
@@ -154,7 +211,7 @@ id -g
 - `Linux`：`/home/yourname/openclaw_data`
 - `Windows`：`C:/Users/yourname/openclaw_data`
 
-### 3）一键部署主服务
+### 4）一键部署主服务
 
 ```bash
 chmod +x bootstrap.sh
@@ -174,7 +231,7 @@ chmod +x bootstrap.sh
 http://localhost:18789
 ```
 
-### 4）启动后台
+### 5）启动后台
 
 如果你还需要后台管理页面，再执行：
 
@@ -305,6 +362,26 @@ docker compose up -d --force-recreate openclaw-clawswarm
    - 查高频问题和排障入口
 4. `config/openclaw.json.example`
    - 了解运行时配置长什么样
+
+## GitHub 展示文案建议
+
+如果你想把仓库首页展示再做完整一点，可以直接使用下面这份 GitHub 仓库信息：
+
+- 仓库简介（description）：
+  - `A beginner-friendly Docker deployment and operations workspace for OpenClaw, with Admin UI, host capability bridge, Chinese overlay, and clearer runtime boundaries.`
+- 推荐 topics：
+  - `openclaw`
+  - `docker`
+  - `docker-compose`
+  - `ai-agent`
+  - `agent-platform`
+  - `ops`
+  - `admin-ui`
+  - `sandbox`
+  - `self-hosted`
+  - `chinese`
+
+更完整的仓库展示文案可见：`docs/github-metadata.md`
 
 ## 一句话总结
 

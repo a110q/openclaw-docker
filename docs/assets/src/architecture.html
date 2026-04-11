@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OpenClaw Docker Architecture</title>
+<style>
+  body { margin:0; width:1600px; height:980px; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background:#07101d; color:#eef5ff; }
+  .bg { position:absolute; inset:0; background:
+    radial-gradient(circle at 10% 10%, rgba(85,140,255,.18), transparent 24%),
+    radial-gradient(circle at 90% 16%, rgba(98,223,251,.14), transparent 18%),
+    linear-gradient(180deg, #0b1528 0%, #09111e 100%); }
+  .grid { position:absolute; inset:0; opacity:.35; background-image:linear-gradient(rgba(140,180,255,.11) 1px, transparent 1px), linear-gradient(90deg, rgba(140,180,255,.11) 1px, transparent 1px); background-size:48px 48px; }
+  .wrap { position:relative; padding:56px; height:100%; }
+  h1 { margin:0 0 10px; font-size:54px; letter-spacing:-.03em; }
+  .sub { color:#a8bdd8; font-size:21px; margin-bottom:38px; }
+  .board { display:grid; grid-template-columns: 260px 1fr 320px; gap:30px; align-items:start; }
+  .column { display:flex; flex-direction:column; gap:18px; }
+  .card { background:rgba(12,23,40,.78); border:1px solid rgba(144,189,255,.14); border-radius:24px; padding:20px 22px; box-shadow:0 22px 60px rgba(0,0,0,.28); }
+  .card h2 { margin:0 0 10px; font-size:22px; }
+  .card p, .card li { margin:0; color:#a9bdd8; font-size:15px; line-height:1.55; }
+  .card ul { padding-left:18px; margin:10px 0 0; }
+  .center { position:relative; min-height:720px; }
+  .node { position:absolute; width:260px; min-height:120px; border-radius:24px; padding:18px; background:rgba(10,24,42,.88); border:1px solid rgba(140,189,255,.14); box-shadow:0 18px 50px rgba(0,0,0,.26); }
+  .node strong { display:block; font-size:22px; margin-bottom:10px; }
+  .node span { display:block; color:#aac0da; font-size:15px; line-height:1.45; }
+  .node small { display:inline-block; margin-top:12px; color:#d7e8ff; background:rgba(255,255,255,.06); padding:6px 10px; border-radius:999px; font-size:12px; letter-spacing:.03em; }
+  .gateway { top:210px; left:160px; }
+  .admin { top:70px; left:520px; }
+  .clawswarm { top:372px; left:520px; }
+  .mysql { top:560px; left:880px; }
+  .plugin { top:210px; left:880px; }
+  .data { top:20px; left:160px; width:980px; min-height:92px; display:flex; justify-content:space-between; align-items:center; }
+  .data strong { margin:0; }
+  svg { position:absolute; inset:0; overflow:visible; }
+  .legend { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:20px; }
+  .pill { padding:10px 12px; border-radius:14px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); color:#d7e6f9; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="grid"></div>
+<div class="wrap">
+  <h1>架构总览 / Architecture Overview</h1>
+  <div class="sub">把配置、运行时、后台和宿主机能力拆清楚，用户更容易部署，维护者也更容易继续迭代。</div>
+  <div class="board">
+    <div class="column">
+      <div class="card">
+        <h2>用户入口</h2>
+        <ul>
+          <li>`18789`：Control UI / Gateway</li>
+          <li>`18889`：平台入口 + 运维后台</li>
+          <li>`18080`：ClawSwarm 协作运行时</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>配置边界</h2>
+        <ul>
+          <li>`.env` 负责部署层变量</li>
+          <li>`openclaw.json` 负责 Gateway 运行配置</li>
+          <li>宿主机数据目录负责状态与工作区</li>
+        </ul>
+      </div>
+    </div>
+    <div class="center">
+      <svg viewBox="0 0 1200 760" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="line" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#67d8ff" stop-opacity=".28" />
+            <stop offset="100%" stop-color="#7aa6ff" stop-opacity=".72" />
+          </linearGradient>
+        </defs>
+        <path d="M 390 86 C 470 86, 530 86, 610 130" stroke="url(#line)" stroke-width="3" fill="none" />
+        <path d="M 390 86 C 670 86, 890 86, 1000 254" stroke="url(#line)" stroke-width="3" fill="none" />
+        <path d="M 390 314 C 490 314, 520 214, 610 190" stroke="url(#line)" stroke-width="3" fill="none" />
+        <path d="M 390 314 C 490 314, 520 430, 610 492" stroke="url(#line)" stroke-width="3" fill="none" />
+        <path d="M 750 190 C 860 190, 930 190, 970 254" stroke="url(#line)" stroke-width="3" fill="none" />
+        <path d="M 750 492 C 860 492, 930 590, 1000 620" stroke="url(#line)" stroke-width="3" fill="none" />
+      </svg>
+      <div class="node data"><strong>宿主机数据根目录</strong><span style="color:#abc0da; font-size:15px;">配置、日志、工作区、缓存、后台状态统一落地，便于备份、迁移和排障</span><small style="color:#dce8ff; font-size:13px;">OPENCLAW_HOST_DATA_ROOT</small></div>
+      <div class="node gateway"><strong>openclaw-gateway</strong><span>主服务，负责 Control UI、模型调用、Agent 生命周期和 sandbox 生命周期。</span><small>18789 / 18790</small></div>
+      <div class="node admin"><strong>openclaw-admin-ui</strong><span>后台控制台，负责服务控制、Provider 管理、Agent 纳管和状态查看。</span><small>18889</small></div>
+      <div class="node clawswarm"><strong>openclaw-clawswarm</strong><span>协作运行时底座，为任务、消息和 OpenClaws 扩展预留能力边界。</span><small>18080</small></div>
+      <div class="node plugin"><strong>host capability bridge</strong><span>通过插件把宿主机动作纳入受控通道，而不是直接取消 sandbox。</span><small>plugins/openclaw-host-ops</small></div>
+      <div class="node mysql"><strong>openclaw-mysql</strong><span>平台控制面数据库，保存用户、会话、Provider 和运行态映射。</span><small>23306</small></div>
+    </div>
+    <div class="column">
+      <div class="card">
+        <h2>为什么这样拆</h2>
+        <ul>
+          <li>新手部署路径更明确</li>
+          <li>数据、配置、运行时边界更清楚</li>
+          <li>适合继续加平台能力而不把主链路改乱</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>关键价值</h2>
+        <div class="legend">
+          <div class="pill">部署更稳定</div>
+          <div class="pill">运维更可见</div>
+          <div class="pill">配置更可解释</div>
+          <div class="pill">扩展更有边界</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

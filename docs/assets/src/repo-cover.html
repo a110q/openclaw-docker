@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OpenClaw Docker Cover</title>
+<style>
+  :root {
+    --bg0:#08111f; --bg1:#0d1b31; --bg2:#112847; --line:rgba(146,196,255,.18);
+    --card:rgba(12,25,44,.72); --text:#f4f8ff; --muted:#9fb4d0; --cyan:#61dafb; --blue:#6aa3ff; --amber:#ffb86b; --green:#67e8b2;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; width:1600px; height:900px; overflow:hidden; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(96,166,255,.22), transparent 28%),
+      radial-gradient(circle at 82% 18%, rgba(97,218,251,.16), transparent 22%),
+      radial-gradient(circle at 76% 78%, rgba(255,184,107,.12), transparent 20%),
+      linear-gradient(135deg, var(--bg0), var(--bg1) 45%, var(--bg2));
+    color:var(--text);
+  }
+  .grid {
+    position:absolute; inset:0; opacity:.45;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to bottom, transparent, black 10%, black 88%, transparent);
+  }
+  .wrap { position:relative; height:100%; padding:72px; display:flex; flex-direction:column; justify-content:space-between; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; }
+  .brand {
+    display:flex; align-items:center; gap:14px; font-weight:700; letter-spacing:.02em;
+  }
+  .logo {
+    width:46px; height:46px; border-radius:14px; background: linear-gradient(135deg, var(--cyan), var(--blue));
+    box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 18px 48px rgba(45,120,255,.35);
+    position:relative;
+  }
+  .logo:before, .logo:after { content:""; position:absolute; inset:10px; border:2px solid rgba(6,14,28,.58); border-radius:10px; }
+  .logo:after { inset:16px; border-color: rgba(6,14,28,.85); }
+  .pills { display:flex; gap:12px; }
+  .pill {
+    padding:10px 16px; border-radius:999px; color:var(--muted); background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); font-size:14px;
+    backdrop-filter: blur(10px);
+  }
+  .hero { display:grid; grid-template-columns: 1.1fr .9fr; gap:34px; align-items:end; }
+  h1 {
+    font-size:82px; line-height:.96; margin:0 0 22px; letter-spacing:-.04em; max-width:780px;
+  }
+  .lead { font-size:26px; line-height:1.5; color:#dce8f8; max-width:760px; margin:0 0 34px; }
+  .chips { display:flex; flex-wrap:wrap; gap:12px; }
+  .chip {
+    padding:11px 16px; border-radius:14px; font-size:15px; color:#d8e6f8; background:rgba(10,24,42,.62); border:1px solid rgba(116,170,255,.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .panel {
+    background: var(--card); border:1px solid rgba(141,192,255,.14); border-radius:28px; padding:28px; backdrop-filter: blur(18px);
+    box-shadow: 0 28px 70px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .diagram { display:grid; grid-template-columns: repeat(2,1fr); gap:16px; }
+  .box { min-height:132px; border-radius:22px; padding:18px; background:rgba(8,20,36,.72); border:1px solid rgba(142,189,255,.12); position:relative; }
+  .box strong { display:block; font-size:20px; margin-bottom:10px; }
+  .box span { display:block; color:var(--muted); font-size:15px; line-height:1.5; }
+  .dot { width:12px; height:12px; border-radius:999px; position:absolute; top:18px; right:18px; }
+  .c1 { background:var(--cyan); box-shadow:0 0 18px rgba(97,218,251,.8); }
+  .c2 { background:var(--blue); box-shadow:0 0 18px rgba(106,163,255,.8); }
+  .c3 { background:var(--green); box-shadow:0 0 18px rgba(103,232,178,.8); }
+  .c4 { background:var(--amber); box-shadow:0 0 18px rgba(255,184,107,.8); }
+  .stats { display:grid; grid-template-columns: repeat(4,1fr); gap:16px; }
+  .stat { padding:18px 20px; border-radius:20px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); }
+  .stat .n { font-size:30px; font-weight:800; letter-spacing:-.03em; margin-bottom:8px; }
+  .stat .t { color:var(--muted); font-size:14px; line-height:1.45; }
+  .footer { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; }
+  .footer p { margin:0; color:var(--muted); font-size:15px; max-width:760px; line-height:1.55; }
+  .tagline { font-size:18px; color:#dce8f8; font-weight:600; text-align:right; }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><div class="logo"></div><div>OpenClaw Docker</div></div>
+    <div class="pills">
+      <div class="pill">Docker Sandbox</div>
+      <div class="pill">Admin UI</div>
+      <div class="pill">Host Capabilities</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div>
+      <h1>让 OpenClaw<br/>从“能跑”变成“好用”</h1>
+      <p class="lead">一套面向本机 / 局域网的 OpenClaw Docker 运维工程：把部署、后台、模型配置、宿主机能力、数据目录和中文化体验整理成一条清晰主线。</p>
+      <div class="chips">
+        <div class="chip">稳定部署</div>
+        <div class="chip">配置可读可改</div>
+        <div class="chip">容器与数据边界清晰</div>
+        <div class="chip">适合继续二次改造</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="diagram">
+        <div class="box"><div class="dot c1"></div><strong>Gateway</strong><span>Control UI、模型调度、Agent 生命周期、sandbox 生命周期</span></div>
+        <div class="box"><div class="dot c2"></div><strong>Admin UI</strong><span>服务控制、Provider 管理、Agent 纳管、状态排查</span></div>
+        <div class="box"><div class="dot c3"></div><strong>ClawSwarm</strong><span>协作运行时底座，承接后续消息、任务与 OpenClaws 扩展</span></div>
+        <div class="box"><div class="dot c4"></div><strong>Host Bridge</strong><span>在保留 sandbox 的前提下补上容器拿不到的宿主机能力</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="stats">
+      <div class="stat"><div class="n">4</div><div class="t">核心模块：Gateway、Admin UI、ClawSwarm、Host Ops</div></div>
+      <div class="stat"><div class="n">3</div><div class="t">主要文档入口：README、operations、FAQ</div></div>
+      <div class="stat"><div class="n">1</div><div class="t">统一宿主机数据根目录，方便备份、排障和迁移</div></div>
+      <div class="stat"><div class="n">∞</div><div class="t">适合作为继续做 Provider、UI、自动化和平台化改造的基础层</div></div>
+    </div>
+    <div class="tagline">本地部署 · 运维增强 · 中文化体验</div>
+  </div>
+</div>
+</body>
+</html>
