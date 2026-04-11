@@ -1,638 +1,311 @@
 # OpenClaw Docker
 
-一个面向本机 / 局域网部署的 `OpenClaw` Docker 增强方案，专注解决 **Docker sandbox、宿主机可编辑配置、多 agent 工作区隔离、OpenAI Compatible 接入** 等落地问题。
+> 想把 `OpenClaw` 稳定跑在自己电脑或局域网里，但又不想被 `Docker`、配置文件、数据目录、后台运维和各种奇怪问题反复折腾？
+> 
+> 这个项目就是为这件事准备的：它不是 `OpenClaw` 核心源码，而是一套**更适合真实落地**的本地部署与运维方案。
+> 
+> 你可以把它理解成：**帮你把 OpenClaw 从“能跑”整理成“好用、可维护、方便继续改”**。
 
-这个仓库不是 `OpenClaw` 核心源码仓库，而是一个围绕官方运行时镜像构建的 **部署与运维模板项目**。
+## 这是什么
 
-## 建议阅读顺序
+`OpenClaw Docker` 是一个围绕官方 `OpenClaw` 运行时镜像构建的部署工程，重点解决这些新手最容易踩坑的问题：
 
-如果你是第一次接触这个项目，建议按下面顺序阅读：
+- 怎么把 `OpenClaw` 稳定跑在 `Docker` 里
+- 怎么把运行配置放到宿主机上，方便直接改
+- 怎么把 `sandbox`、模型接入、后台运维、数据目录理顺
+- 怎么加一层更适合日常管理的 `Admin UI`
+- 怎么让项目后续还方便继续扩展，而不是越改越乱
 
-1. `快速开始`：先把 Docker 和项目跑起来
-2. `首次登录与重启后重新登录`：解决第一次进入、模式 A/B、重启后怎么进
-3. `常用命令`：学会查看状态、日志和调试容器
-4. `常见问题`：遇到报错时优先看这里
+如果你要的是下面这种体验，这个仓库就很适合你：
 
-如果你已经能正常使用，再继续看后面的架构、目录和配置说明。
+- **第一次部署也能照着跑起来**
+- **出问题时知道该去哪里查**
+- **配置、数据、脚本、文档边界清楚**
+- **后面想接自己的 Provider、改 UI、加能力，也有下手点**
 
-## 快速开始
+## 适合谁
 
-先不要着急执行命令，先确认你的电脑已经准备好了 **Docker 环境**。
+这个项目特别适合下面几类人：
 
-### 0. 先准备 Docker 环境
+- 想在本机或局域网部署 `OpenClaw` 的个人开发者
+- 想做一套可维护内部环境的技术团队
+- 想在官方运行时之上继续做二次改造的人
+- 不想每次改完配置都靠猜、靠试、靠重装的人
 
-如果你是第一次接触这个项目，可以把它理解成：
+如果你想要的是：
 
-- `OpenClaw` 是要运行的程序
-- `Docker` 是用来装和运行这个程序的“容器工具”
-- 没有 Docker，这个项目就跑不起来
+- 一份**更落地**的 `OpenClaw Docker` 工程模板
+- 一套**带后台、带脚本、带文档、带数据目录约定**的方案
+- 一个适合继续往上叠功能的基础仓库
 
-按操作系统区分：
+那这里就是为这个目标整理的。
 
-- `macOS`：安装 `Docker Desktop`
-- `Windows`：安装 `Docker Desktop`
-- `Linux`：安装 `Docker Engine` + `Docker Compose`
+## 你能得到什么
 
-安装完成后，请先确认 Docker 已经真正启动，再继续下面的步骤。
+当前仓库主要包含这些能力：
 
-你可以用下面两条命令检查 Docker 是否已经准备好：
+- `openclaw-gateway`
+  - 主入口
+  - 提供 `Control UI`、模型调度、Agent 生命周期和 sandbox 生命周期
+- `openclaw-admin-ui`
+  - 独立后台
+  - 负责服务控制、Provider / 模型管理、Agent 纳管、运行状态查看
+- `openclaw-clawswarm`
+  - 协作运行时底座
+  - 用于后续扩展 `协作中心 / Messages / Tasks / OpenClaws`
+- 宿主机数据目录管理
+  - 配置、工作区、日志、缓存统一落在宿主机上
+- 宿主机能力桥
+  - 在保留 sandbox 的前提下补足容器做不到的宿主机动作
+- `Control UI` 中文 / 双语 overlay
+  - 更适合中文用户直接使用和继续改造
+
+## 项目结构
+
+你不需要一开始把整个仓库看懂，但至少知道这些目录是干嘛的：
+
+- `docker-compose.yml`
+  - 项目的主编排文件
+- `Dockerfile`
+  - `openclaw-gateway` 运行镜像增强层
+- `config/openclaw.json.example`
+  - `OpenClaw` 运行配置模板
+- `scripts/`
+  - 启动、重载、初始化、构建、辅助排障脚本
+- `apps/admin-ui/`
+  - 独立后台 UI
+- `plugins/openclaw-host-ops/`
+  - 宿主机能力插件
+- `overlays/control-ui/`
+  - `Control UI` 中文 / 双语 overlay 资源
+- `docs/`
+  - 项目说明、FAQ、运维操作文档
+
+## 服务与端口
+
+默认情况下你会接触到这些服务：
+
+| 服务 | 默认端口 | 用途 |
+| --- | --- | --- |
+| `openclaw-gateway` | `18789` | 主入口，包含 `Control UI` 和网关 API |
+| `openclaw-gateway` bridge | `18790` | 网关桥接端口 |
+| `openclaw-admin-ui` | `18889` | 平台入口 + 运维后台 |
+| `openclaw-clawswarm` | `18080` | 协作运行时 |
+| `openclaw-mysql` | `23306` | 平台控制面数据库 |
+| `openclaw-cli` | 无固定端口 | 临时执行 CLI / 排障 |
+| `openclaw-tools` | 无固定端口 | 可选调试容器 |
+
+默认访问地址：
+
+```text
+Gateway / Control UI: http://localhost:18789
+Platform UI:         http://localhost:18889/
+Ops Login:           http://localhost:18889/ops/login
+ClawSwarm Runtime:   http://localhost:18080
+```
+
+## 5 分钟快速开始
+
+如果你是第一次看这个仓库，建议先不要研究全部细节，先按下面顺序跑起来。
+
+### 1）准备 Docker
+
+先确认你本机已经安装并启动：
+
+- `Docker Desktop`（macOS / Windows）
+- 或 `Docker Engine + Docker Compose`（Linux）
+
+检查命令：
 
 ```bash
 docker --version
 docker compose version
 ```
 
-如果这两条命令都能正常输出版本号，就说明 Docker 环境已经准备好了。
-
-如果你这一步就报错，先不要继续下面的部署步骤，先把 Docker 环境安装并启动成功。
-
-如果你只想用**最短路径**把项目跑起来，直接执行下面这组命令：
-
-```bash
-cp .env.example .env
-chmod +x bootstrap.sh
-./bootstrap.sh
-```
-
-浏览器打开：
-
-```text
-http://localhost:18789
-```
-
-如果你更想按步骤理解整个部署过程，再继续看下面的分步说明。
-
-`bootstrap.sh` 默认会：
-
-- 检查 `.env` 是否存在
-- 检查关键变量是否还是占位符
-- 初始化宿主机数据目录
-- 构建 sandbox 镜像
-- 构建主镜像并启动 `openclaw-gateway`
-- 输出访问地址和常用运维命令
-
-### 1. 复制环境变量模板
-
-现在开始真正操作，按顺序来：
-
-**第一步：复制配置模板**
+### 2）复制环境变量模板
 
 ```bash
 cp .env.example .env
 ```
 
-请先理解这两个文件的区别：
-
-- `.env.example`：仓库里的公开示例模板，可以提交到 GitHub
-- `.env`：你本机的真实运行配置，**不能上传到 GitHub**
-
-`.env.example` 现在已经提供了可直接参考的填写示例，但里面所有地址、token、API Key 都是示意值。
-你应该基于它复制出自己的 `.env`，然后把真实值填进 `.env`，而不是反过来修改并提交 `.env`。
-
-至少修改：
+优先修改这些值：
 
 - `OPENCLAW_HOST_DATA_ROOT`
 - `OPENCLAW_GATEWAY_TOKEN`
 - `OPENAI_COMPATIBLE_BASE_URL`
 - `OPENAI_COMPATIBLE_API_KEY`
 - `OPENCLAW_RUN_USER`
+- `OPENCLAW_ADMIN_UI_TOKEN`
 
-推荐填写方式：
+常用辅助命令：
 
-- `OPENCLAW_HOST_DATA_ROOT`：必须填写你自己机器上的绝对路径
-  - `macOS`：`/Users/yourname/openclaw_data`
-  - `Linux`：`/home/yourname/openclaw_data`
-  - `Windows`：`C:/Users/yourname/openclaw_data`
-- `OPENCLAW_GATEWAY_TOKEN`：填写你自己生成的长随机串
-- `OPENAI_COMPATIBLE_BASE_URL`：填写你自己的 OpenAI Compatible 接口地址，例如 `http://your-openai-compatible-host:3000/v1`
-- `OPENAI_COMPATIBLE_API_KEY`：填写你自己的真实 API Key
-- `OPENCLAW_RUN_USER`：
-  - `macOS` / `Linux`：运行 `id -u` 和 `id -g`，按 `UID:GID` 填写
-  - `Windows`：先保留 `.env.example` 里的 `1000:1000`，只有遇到权限问题再调整
+```bash
+# 生成随机 token
+openssl rand -hex 24
 
-注意：
+# 查看当前 UID / GID
+id -u
+id -g
+```
 
-- 不要把你本机 `.env` 中的真实 IP、真实 token、真实 API Key 提交到仓库
-- `.env.example` 只应该保留占位符或公开示例值
+推荐数据目录示例：
 
-如果你已经填好这些值，可以直接执行：
+- `macOS`：`/Users/yourname/openclaw_data`
+- `Linux`：`/home/yourname/openclaw_data`
+- `Windows`：`C:/Users/yourname/openclaw_data`
+
+### 3）一键部署主服务
 
 ```bash
 chmod +x bootstrap.sh
 ./bootstrap.sh
 ```
 
-如果你是完全第一次使用，可以把整个流程理解成下面这 8 步：
+这个脚本会自动完成：
 
-1. 安装并启动 `Docker` / `Docker Desktop`
-2. 用 `docker --version` 和 `docker compose version` 检查 Docker 是否正常
-3. 下载这个项目到本地
-4. 执行 `cp .env.example .env`
-5. 按 `.env.example` 的说明填写你自己的 `.env`
-6. 执行 `chmod +x bootstrap.sh`
-7. 执行 `./bootstrap.sh`
-8. 打开浏览器访问 `http://localhost:18789`
+- 初始化宿主机数据目录
+- 构建 sandbox 镜像
+- 构建运行镜像
+- 启动 `openclaw-gateway`
 
-### 2. 初始化宿主机数据目录
-
-```bash
-chmod +x scripts/init-data-dir.sh scripts/build-sandbox-image.sh
-./scripts/init-data-dir.sh
-```
-
-### 3. 构建 sandbox 镜像
-
-```bash
-./scripts/build-sandbox-image.sh
-```
-
-### 4. 构建并启动服务
-
-```bash
-docker compose build
-docker compose up -d openclaw-gateway
-```
-
-### 5. 查看状态
-
-```bash
-docker compose ps
-docker compose logs -f openclaw-gateway
-docker compose run --rm openclaw-cli gateway status
-```
-
-### 6. 打开控制台
+完成后先访问：
 
 ```text
 http://localhost:18789
 ```
 
-## 首次登录与重启后重新登录
+### 4）启动后台
 
-如果你电脑重启了，或者 `Docker Desktop` 重启了，不需要重新部署整个项目，按下面步骤重新进入即可。
-
-### 1. 先启动网关
-
-进入你自己的项目目录：
+如果你还需要后台管理页面，再执行：
 
 ```bash
-cd <your-project-dir>
+./scripts/reload-admin-ui.sh
 ```
 
-启动服务：
-
-```bash
-docker compose up -d openclaw-gateway
-```
-
-检查服务是否正常：
-
-```bash
-docker compose ps
-docker compose logs --tail=30 openclaw-gateway
-```
-
-### 2. 打开登录页面
-
-浏览器访问：
+然后访问：
 
 ```text
-http://localhost:18789
+http://localhost:18889/
 ```
 
-页面里一般要填写下面 3 项：
+## 当前项目的核心思路
 
-- `WebSocket URL`：本机部署填写 `ws://localhost:18789`
-- `Gateway Token`：来自你本机 `.env` 文件中的 `OPENCLAW_GATEWAY_TOKEN`
-- `Password`：当前项目里可留空
+这个仓库和“直接把官方镜像跑起来”最大的区别，不是多几个脚本，而是把部署边界理顺了。
 
-### 3. 如何获取 `Gateway Token`
+### 1. `.env` 是部署层参数
 
-直接在项目目录执行：
+`.env` 主要负责：
 
-```bash
-grep '^OPENCLAW_GATEWAY_TOKEN=' .env
-```
+- 端口
+- 数据目录
+- Token / API Key
+- 代理参数
+- 后台运行参数
+- 构建时 overlay 相关参数
 
-你会看到类似：
+它不是“改完立即热生效”的运行时配置。
+
+### 2. `openclaw.json` 是 Gateway 真正的运行配置
+
+实际运行时会用宿主机数据目录里的配置文件，例如：
 
 ```text
-OPENCLAW_GATEWAY_TOKEN=your_gateway_token_here
-```
-
-把等号后面的内容复制到页面里的 `Gateway Token` 输入框即可。
-
-### 4. 常见情况说明
-
-#### 当前提供两种登录模式
-
-本项目支持两种浏览器登录模式：
-
-- **模式 A：`token + pairing`**
-  - 用户先输入 `Gateway Token`
-  - 如果是新浏览器，还需要管理员批准这次设备配对
-  - 更安全，适合多人使用或你希望控制谁能进后台
-
-- **模式 B：仅 `token` 登录**
-  - 用户只需要填写 `Gateway Token`
-  - 不再要求浏览器设备配对
-  - 更省事，适合**单人、本机、受控环境**
-
-本项目当前已经按 **模式 B** 配置当前实例。
-
-#### 为什么模式 A 不会“第一次自动接受任何设备”
-
-不会这样设计。
-
-原因很简单：如果“第一次打开页面的任意浏览器”都会自动成为管理员，那么谁先访问控制台，谁就直接拿到后台权限。
-
-在 `lan` 绑定、局域网访问、或多人共享环境里，这个风险非常高。
-
-因此，模式 A 的正确思路不是“自动接受第一个设备”，而是：
-
-- 第一个可信浏览器由**本机管理员**引导批准
-- 后续其他浏览器继续走正常 pairing 审批流程
-
-这也是下面这个“首次管理员浏览器引导脚本”的作用。
-
-#### 模式 A：第一次怎么让管理员浏览器进去
-
-如果你想保留更安全的 **模式 A**，但又要解决“第一个浏览器没有已授权设备可批准”的问题，可以使用：
-
-```bash
-./scripts/bootstrap-first-control-ui-admin.sh
-```
-
-使用方式：
-
-1. 先确保 `dangerouslyDisableDeviceAuth` 为 `false`
-2. 启动网关：`docker compose up -d openclaw-gateway`
-3. 在终端运行：`./scripts/bootstrap-first-control-ui-admin.sh`
-4. 在浏览器打开 `http://localhost:18789`
-5. 填入 `Gateway Token`
-6. 点一次 `Connect`
-
-脚本会等待这条“第一个浏览器”的待配对请求，并将其批准为首个管理员浏览器。
-
-注意：
-
-- 这个脚本**只适用于还没有任何已配对 Control UI 浏览器**的情况
-- 一旦已经有浏览器配对成功，后续新增设备就应该走正常 pairing 审批
-
-#### 如何启用模式 B
-
-编辑运行中的配置文件：
-
-```bash
 <OPENCLAW_HOST_DATA_ROOT>/openclaw/openclaw.json
 ```
 
-把 `gateway.controlUi` 改成类似这样：
+仓库里的：
 
-```json
-"controlUi": {
-  "allowedOrigins": [
-    "http://localhost:18789",
-    "http://127.0.0.1:18789"
-  ],
-  "dangerouslyDisableDeviceAuth": true
-}
+```text
+config/openclaw.json.example
 ```
 
-然后重启网关：
+只是初始化模板。
 
-```bash
-docker compose restart openclaw-gateway
-```
+### 3. 数据目录要放到宿主机，而不是只留在容器里
 
-#### 第一次登录怎么进去
+这样做的好处是：
 
-- 如果你使用 **模式 A**：
-  - 第一次登录时，输入 `Gateway Token` 后，页面可能会显示 `pairing required`
-  - 这时需要管理员或已授权设备批准这次配对
-  - 如果这是第一台管理员浏览器，可以先运行：`./scripts/bootstrap-first-control-ui-admin.sh`
+- 改配置不需要进容器
+- 容器重建不容易丢状态
+- 工作区、日志、缓存都有明确落点
+- 更容易备份、迁移和排障
 
-- 如果你使用 **模式 B**：
-  - 第一次登录**不需要已有授权**
-  - 只要服务已经启动，直接输入 `Gateway Token` 就可以进入
+### 4. sandbox 和宿主机能力是分层的
 
-#### 情况 A：提示 `pairing required`
+这个项目不是简单粗暴地“把 sandbox 关掉”，而是：
 
-这表示当前浏览器还没有完成设备配对，不代表服务坏了。
+- 继续保留 sandbox 作为隔离执行边界
+- 通过宿主机能力桥补充容器里做不到的动作
 
-相关文件在：
+这也是为什么它更适合长期维护，而不是一次性试玩。
 
-- 已配对设备：`<OPENCLAW_HOST_DATA_ROOT>/openclaw/devices/paired.json`
-- 待批准设备：`<OPENCLAW_HOST_DATA_ROOT>/openclaw/devices/pending.json`
+## 常见使用场景
 
-如果你之前登录过，但现在又出现这个提示，通常是：
+你可以把这个仓库用在这些场景里：
 
-- 换了浏览器
-- 开了无痕模式
-- 清除了浏览器本地站点数据
-- 浏览器生成了新的设备身份
-
-如果你当前使用的是 **模式 A**，并且这是第一台要进入后台的管理员浏览器，可以在本机执行：
-
-```bash
-./scripts/bootstrap-first-control-ui-admin.sh
-```
-
-然后回到浏览器刷新页面，再点一次 `Connect`。
-
-#### 情况 B：提示 `too many failed authentication attempts`
-
-这表示前面输错了太多次 token。
-
-处理方式：
-
-- 先不要继续反复点 `Connect`
-- 确认你填写的是 `.env` 里的真实 `OPENCLAW_GATEWAY_TOKEN`
-- 等几分钟后再试
-- 或重启网关后再试：
-
-```bash
-docker compose restart openclaw-gateway
-```
-
-### 5. 最短恢复步骤
-
-如果你只是想最快重新进去，直接照抄下面命令：
-
-```bash
-cd <your-project-dir>
-docker compose up -d openclaw-gateway
-grep '^OPENCLAW_GATEWAY_TOKEN=' .env
-```
-
-然后在页面填写：
-
-- `WebSocket URL`：`ws://localhost:18789`
-- `Gateway Token`：上一步命令输出的等号后内容
-- `Password`：留空
+- 本机自用的 `OpenClaw` 环境
+- 团队内部演示 / 测试环境
+- 二次开发前的部署基础层
+- 想把 `OpenClaw` 做成“可运维、可排障、可交接”的工程
 
 ## 常用命令
 
+### 启动主服务
+
 ```bash
-# 查看服务状态
+./bootstrap.sh
+```
+
+### 重载后台
+
+```bash
+./scripts/reload-admin-ui.sh
+```
+
+### 重载 Gateway
+
+```bash
+./scripts/reload-gateway.sh
+```
+
+### 查看容器状态
+
+```bash
 docker compose ps
+```
 
-# 查看网关日志
+### 查看 Gateway 日志
+
+```bash
 docker compose logs -f openclaw-gateway
-
-# 查看网关运行状态
-docker compose run --rm openclaw-cli gateway status
-
-# 启动调试容器
-docker compose --profile tools up -d openclaw-tools
-
-# 进入调试容器
-docker compose exec openclaw-tools bash
 ```
 
-## 常见问题
-
-### 1. Docker socket 权限报错
-
-如果看到：
-
-```text
-permission denied while trying to connect to the docker API
-```
-
-说明容器内访问 Docker socket 的权限有问题。本项目已经通过 `group_add: ["0"]` 处理这一点。
-
-### 2. Docker Desktop 文件共享报错
-
-如果看到：
-
-```text
-mounts denied: path is not shared from the host
-```
-
-说明 sandbox 正在尝试挂载 Docker Desktop 未认可的路径。本项目当前通过宿主机绝对路径 `workspace` / `workspaceRoot` 方案处理了这个问题。
-
-### 3. 页面显示 `pairing required`
-
-说明当前浏览器设备还没有完成配对。这是首次接入时的正常安全流程。
-
-## 为什么要用这个项目
-
-相比直接运行官方镜像，这个项目额外处理了这些高频痛点：
-
-- 支持 `OpenClaw` 的 Docker sandbox 落地
-- 将 `openclaw.json` 直接持久化到宿主机，便于手改和排障
-- 提供 `default`、`backend`、`frontend` 三个预置 agent
-- 统一 `workspace`、`agentDir`、缓存、日志目录
-- 支持 OpenAI Compatible 接口接入 `gpt-5.4` 等模型
-- 预留 Anthropic、Gemini、Ollama、Feishu 配置模板
-- 兼容 macOS Docker Desktop 下的 Docker socket 与文件共享限制
-- 补充 Windows / Linux 路径示例，避免宿主机目录配置踩坑
-
-## 适用场景
-
-适合：
-
-- 本机部署 `OpenClaw`
-- 局域网访问 OpenClaw Control UI
-- 多 agent 协作工作流
-- 需要 sandbox 执行命令的 AI agent 场景
-- 想把配置、日志、缓存全部放在宿主机维护
-
-不适合：
-
-- 大规模生产集群
-- Kubernetes 编排
-- 高可用与多副本部署
-- 面向公网的强安全生产发布场景
-
-## 核心能力
-
-- **Docker sandbox**：默认启用 `mode: "all"`、`scope: "agent"`
-- **宿主机配置管理**：主配置文件保存在宿主机目录中
-- **多 agent**：预置 `default`、`backend`、`frontend`
-- **模型 provider 模板**：`default`、`claude`、`gemini`、`ollama`
-- **运维辅助容器**：提供 `openclaw-cli` 和 `openclaw-tools`
-- **Feishu 模板**：预置 channel 与 routing 结构
-
-## 服务说明
-
-### `openclaw-gateway`
-
-- 主服务
-- 对外暴露 `18789` 和 `18790`
-- 挂载宿主机配置、缓存、Docker socket 和宿主机数据根目录
-
-### `openclaw-cli`
-
-- 辅助 CLI 容器
-- 共享 `openclaw-gateway` 网络命名空间
-- 用于状态检查、pairing、日志相关命令
-
-### `openclaw-tools`
-
-- 可选调试容器
-- 通过 `tools` profile 启动
+### 查看后台日志
 
 ```bash
-docker compose --profile tools up -d openclaw-tools
-docker compose exec openclaw-tools bash
+docker compose logs -f openclaw-admin-ui
 ```
 
-## 为什么会看到两个容器
-
-很多用户第一次启动后会看到：
-
-- 一个主容器：`openclaw-gateway`
-- 一个或多个运行时容器：`openclaw-sbx-*`
-
-这**不是重复部署，也不是多起了无用容器**。
-
-原因是：
-
-- `openclaw-gateway` 负责网关、控制台、模型调度和 agent 生命周期管理
-- `openclaw-sbx-*` 是 OpenClaw 在需要执行 sandbox 任务时，动态拉起的隔离容器
-
-也就是说：
-
-- **平时主服务只需要 `openclaw-gateway`**
-- **当 agent 需要在 sandbox 中执行任务时，才会额外出现 `openclaw-sbx-*`**
-
-这是当前项目设计的一部分，目的是把 agent 的命令执行与主服务隔离开，降低直接在主容器中执行任务的风险。
-
-如果你看到 2 个容器，通常说明：
-
-- 主服务已经启动成功
-- sandbox 也正在正常工作
-
-这属于**符合预期的行为**，不是故障。
-
-## 配置说明
-
-### 主配置文件
-
-请直接编辑：
+### 单独重建 ClawSwarm
 
 ```bash
-<OPENCLAW_HOST_DATA_ROOT>/openclaw/openclaw.json
+./scripts/build-clawswarm-image.sh
+docker compose up -d --force-recreate openclaw-clawswarm
 ```
 
-### 预置 agent
+## 下一步看哪里
 
-- `default`：通用助手
-- `backend`：后端开发助手
-- `frontend`：前端 / UI 助手
+如果你已经跑起来了，建议按这个顺序继续看：
 
-### Provider 模板
+1. `docs/open-source-manual.md`
+   - 先快速理解仓库整体结构
+2. `docs/operations.md`
+   - 看部署、重载、配置修改后的正确操作方式
+3. `docs/faq.md`
+   - 查高频问题和排障入口
+4. `config/openclaw.json.example`
+   - 了解运行时配置长什么样
 
-`config/openclaw.json.example` 中预留了：
+## 一句话总结
 
-- `default`
-- `claude`
-- `gemini`
-- `ollama`
-
-默认模型引用：
-
-```json
-"default/gpt-5.4"
-```
-
-## 目录结构
-
-```text
-.
-├── Dockerfile
-├── docker-compose.yml
-├── .env.example
-├── README.md
-├── CHANGELOG.md
-├── LICENSE
-├── config/
-│   └── openclaw.json.example
-├── scripts/
-│   ├── init-data-dir.sh
-│   └── build-sandbox-image.sh
-└── docs/
-    └── open-source-manual.md
-```
-
-## 数据目录
-
-宿主机数据根目录默认是：
-
-```bash
-<OPENCLAW_HOST_DATA_ROOT>
-```
-
-推荐示例：
-
-- `macOS`：`/Users/yourname/openclaw_data`
-- `Linux`：`/home/yourname/openclaw_data`
-- `Windows`：`C:/Users/yourname/openclaw_data`
-
-初始化后主要包含：
-
-- `openclaw/openclaw.json`
-- `openclaw/workspace/agents/default`
-- `openclaw/workspace/agents/backend`
-- `openclaw/workspace/agents/frontend`
-- `openclaw/workspace/sandbox`
-- `openclaw/agents/<agent>/agent`
-- `cache`
-- `logs`
-
-## 架构概览
-
-```mermaid
-flowchart LR
-    U["Browser / Control UI"] --> G["openclaw-gateway"]
-    C["openclaw-cli"] --> G
-    T["openclaw-tools"] --> G
-    G --> P["Model Providers\nOpenAI Compatible / Claude / Gemini / Ollama"]
-    G --> S["Sandbox Containers\nopenclaw-sbx-*"]
-    G --> D["Host Data Root\nopenclaw.json / workspace / logs / cache"]
-    G --> K["/var/run/docker.sock"]
-    K --> DS["Docker Engine / Docker Desktop"]
-    S --> D
-```
-
-更完整的设计说明见：`docs/open-source-manual.md`
-
-## 文档索引
-
-- 综合手册：`docs/open-source-manual.md`
-- 设计 / 运维实施记录：`docs/plans/2026-04-08-openclaw-docker-compose.md`
-- 变更记录：`CHANGELOG.md`
-
-## 开源建议
-
-在公开仓库前，请确认：
-
-- 不提交真实 `.env`
-- 不提交真实 API Key / Gateway Token / Feishu Secret
-- `.env.example` 中只保留公开示例，不保留真实 IP、真实 token、真实 key
-- 如有泄漏历史，先轮换密钥再发布
-
-## 路线图
-
-后续可以继续补充：
-
-- `docs/architecture.md`
-- `docs/operations.md`
-- `docs/faq.md`
-- GitHub Actions 基础校验
-- `SECURITY.md`
-- 更完善的 Linux 部署说明
-
-## 致谢
-
-- 官方站点：`https://openclaw.ai/`
-- 官方 Docker 文档：`https://docs.openclaw.ai/install/docker`
-- 官方 Sandboxing 文档：`https://docs.openclaw.ai/gateway/sandboxing`
-- 飞书通道文档：`https://docs.openclaw.ai/channels/feishu`
-- Channel routing 文档：`https://docs.openclaw.ai/channels/channel-routing`
-
-## License
-
-本仓库当前采用 `MIT` 协议，详见 `LICENSE`。
+如果你想要的不是“把 OpenClaw 勉强跑起来”，而是要一套**更适合长期使用、方便排障、方便维护、方便继续改**的本地部署工程，那么这个仓库就是为这个目标准备的。

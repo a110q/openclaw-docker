@@ -9,3 +9,8 @@ output/
 *.log
 
 docs/superpowers/
+
+project_state/
+apps/**/node_modules/
+apps/**/.next/
+docs/plans/

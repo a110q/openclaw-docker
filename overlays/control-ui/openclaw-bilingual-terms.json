@@ -1,0 +1,169 @@
+{
+  "nav.aiAgents": {
+    "source": "AI & Agents",
+    "zh": "AI 与代理",
+    "en": "AI & Agents",
+    "kind": "nav",
+    "render": "inline",
+    "aliases": ["ai与代理", "ai agents", "代理"]
+  },
+  "nav.communication": {
+    "source": "Communication",
+    "zh": "通信",
+    "en": "Communication",
+    "kind": "nav",
+    "render": "inline",
+    "aliases": ["通信", "communication"]
+  },
+  "nav.appearance": {
+    "source": "Appearance",
+    "zh": "外观与设置",
+    "en": "Appearance",
+    "kind": "nav",
+    "render": "inline",
+    "aliases": ["外观", "appearance"]
+  },
+  "field.agentDefaults": {
+    "source": "Agent Defaults",
+    "zh": "代理默认项",
+    "en": "Agent Defaults",
+    "kind": "field",
+    "render": "inline",
+    "path": "agents.defaults",
+    "aliases": ["代理默认项", "默认代理", "agent defaults"]
+  },
+  "field.blockStreamingBreak": {
+    "source": "Block Streaming Break",
+    "zh": "流式分块断点",
+    "en": "Block Streaming Break",
+    "kind": "field",
+    "render": "inline",
+    "path": "agents.defaults.blockStreamingBreak",
+    "aliases": ["流式分块断点", "block streaming break"]
+  },
+  "field.blockStreamingChunk": {
+    "source": "Block Streaming Chunk",
+    "zh": "流式分块大小",
+    "en": "Block Streaming Chunk",
+    "kind": "field",
+    "render": "inline",
+    "path": "agents.defaults.blockStreamingChunk",
+    "aliases": ["流式分块大小", "block streaming chunk"]
+  },
+  "field.blockStreamingDefault": {
+    "source": "Block Streaming Default",
+    "zh": "默认流式分块",
+    "en": "Block Streaming Default",
+    "kind": "field",
+    "render": "inline",
+    "path": "agents.defaults.blockStreamingDefault",
+    "aliases": ["默认流式分块", "block streaming default"]
+  },
+  "field.bootstrapMaxChars": {
+    "source": "Bootstrap Max Chars",
+    "zh": "引导最大字符数",
+    "en": "Bootstrap Max Chars",
+    "kind": "field",
+    "render": "inline",
+    "path": "agents.defaults.bootstrapMaxChars",
+    "aliases": ["引导最大字符数", "bootstrap max chars"]
+  },
+  "desc.agentDefaults": {
+    "source": "Shared default settings inherited by agents unless overridden per entry in agents.list.",
+    "zh": "代理继承的默认配置；除非在 agents.list 中按条目单独覆盖。",
+    "en": "Shared default settings inherited by agents unless overridden per entry in agents.list.",
+    "kind": "desc",
+    "render": "stacked",
+    "path": "agents.defaults",
+    "aliases": ["代理继承默认配置", "shared default settings"]
+  },
+  "desc.bootstrapMaxChars": {
+    "source": "Max characters of each workspace bootstrap file injected into the system prompt before truncation (default: 20000).",
+    "zh": "每个 workspace bootstrap 文件在截断前注入 system prompt 的最大字符数（默认：20000）。",
+    "en": "Max characters of each workspace bootstrap file injected into the system prompt before truncation (default: 20000).",
+    "kind": "desc",
+    "render": "stacked",
+    "path": "agents.defaults.bootstrapMaxChars",
+    "aliases": ["引导字符上限", "max characters", "bootstrap max chars"]
+  },
+  "enum.advanced": {
+    "source": "advanced",
+    "zh": "高级",
+    "en": "advanced",
+    "kind": "enum",
+    "render": "chip",
+    "aliases": ["高级", "advanced"]
+  },
+  "enum.performance": {
+    "source": "performance",
+    "zh": "性能",
+    "en": "performance",
+    "kind": "enum",
+    "render": "chip",
+    "aliases": ["性能", "performance"]
+  },
+  "enum.off": {
+    "source": "off",
+    "zh": "关闭",
+    "en": "off",
+    "kind": "enum",
+    "render": "chip",
+    "aliases": ["关闭", "off"]
+  },
+  "enum.on": {
+    "source": "on",
+    "zh": "开启",
+    "en": "on",
+    "kind": "enum",
+    "render": "chip",
+    "aliases": ["开启", "on"]
+  },
+  "enum.textEnd": {
+    "source": "text_end",
+    "zh": "文本结束",
+    "en": "text_end",
+    "kind": "enum",
+    "render": "codeish",
+    "aliases": ["文本结束", "text_end"]
+  },
+  "enum.messageEnd": {
+    "source": "message_end",
+    "zh": "消息结束",
+    "en": "message_end",
+    "kind": "enum",
+    "render": "codeish",
+    "aliases": ["消息结束", "message_end"]
+  },
+  "action.searchSettings": {
+    "source": "Search settings",
+    "zh": "搜索设置",
+    "en": "Search settings",
+    "kind": "action",
+    "render": "inline",
+    "aliases": ["搜索设置", "search settings"]
+  },
+  "action.clearSearch": {
+    "source": "Clear search",
+    "zh": "清空搜索",
+    "en": "Clear search",
+    "kind": "action",
+    "render": "inline",
+    "aliases": ["清空搜索", "clear search"]
+  },
+  "action.save": {
+    "source": "Save",
+    "zh": "保存",
+    "en": "Save",
+    "kind": "action",
+    "render": "inline",
+    "aliases": ["保存", "save"]
+  },
+  "action.apply": {
+    "source": "Apply",
+    "zh": "应用",
+    "en": "Apply",
+    "kind": "action",
+    "render": "inline",
+    "aliases": ["应用", "apply"]
+  }
+}

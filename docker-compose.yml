@@ -1,9 +1,42 @@
 services:
+  openclaw-mysql:
+    image: mysql:8.4
+    environment:
+      TZ: ${OPENCLAW_TZ:-Asia/Shanghai}
+      MYSQL_DATABASE: ${OPENCLAW_PLATFORM_MYSQL_DATABASE:-openclaw_platform}
+      MYSQL_USER: ${OPENCLAW_PLATFORM_MYSQL_USER:-openclaw}
+      MYSQL_PASSWORD: ${OPENCLAW_PLATFORM_MYSQL_PASSWORD:-openclaw_platform_change_me}
+      MYSQL_ROOT_PASSWORD: ${OPENCLAW_PLATFORM_MYSQL_ROOT_PASSWORD:-openclaw_platform_root_change_me}
+    command:
+      [
+        "mysqld",
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci"
+      ]
+    ports:
+      - ${OPENCLAW_PLATFORM_MYSQL_PORT_EXPOSE:-23306}:3306
+    volumes:
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
   openclaw-gateway:
     image: ${OPENCLAW_IMAGE:-openclaw-local:2026.4.5-sandbox}
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        OPENCLAW_CONTROL_UI_DEFAULT_LOCALE: ${OPENCLAW_CONTROL_UI_DEFAULT_LOCALE:-zh-CN}
+        OPENCLAW_CONTROL_UI_FORCE_LOCALE: ${OPENCLAW_CONTROL_UI_FORCE_LOCALE:-}
+        OPENCLAW_CONTROL_UI_ENABLED_LOCALES: ${OPENCLAW_CONTROL_UI_ENABLED_LOCALES:-auto,zh-CN,zh-TW,en}
+        OPENCLAW_CONTROL_UI_SHOW_LOCALE_SWITCHER: ${OPENCLAW_CONTROL_UI_SHOW_LOCALE_SWITCHER:-true}
+        OPENCLAW_CONTROL_UI_TEXT_MODE_DEFAULT: ${OPENCLAW_CONTROL_UI_TEXT_MODE_DEFAULT:-zh-en}
+        OPENCLAW_CONTROL_UI_ENABLED_TEXT_MODES: ${OPENCLAW_CONTROL_UI_ENABLED_TEXT_MODES:-zh-only,zh-en,en-only}
     user: ${OPENCLAW_RUN_USER:-1000:1000}
     group_add:
       - "0"
@@ -19,6 +52,18 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       FEISHU_APP_ID: ${FEISHU_APP_ID:-}
       FEISHU_APP_SECRET: ${FEISHU_APP_SECRET:-}
+      OPENCLAW_SANDBOX_NETWORK: ${OPENCLAW_SANDBOX_NETWORK:-none}
+      OPENCLAW_SANDBOX_EXTRA_HOST: ${OPENCLAW_SANDBOX_EXTRA_HOST:-host.docker.internal:host-gateway}
+      OPENCLAW_PROXY_MODE: ${OPENCLAW_PROXY_MODE:-auto}
+      OPENCLAW_PROXY_PROBE_TIMEOUT_MS: ${OPENCLAW_PROXY_PROBE_TIMEOUT_MS:-1500}
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      ALL_PROXY: ${ALL_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,host.docker.internal,openclaw-gateway,openclaw-clawswarm,openclaw-admin-ui,openclaw-mysql}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      all_proxy: ${ALL_PROXY:-}
+      no_proxy: ${NO_PROXY:-localhost,127.0.0.1,host.docker.internal,openclaw-gateway,openclaw-clawswarm,openclaw-admin-ui,openclaw-mysql}
     volumes:
       - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/openclaw:/home/node/.openclaw
       - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/cache:/home/node/.cache
@@ -31,6 +76,7 @@ services:
       - ${OPENCLAW_BRIDGE_PORT:-18790}:18790
     init: true
     restart: unless-stopped
+    entrypoint: ["/usr/local/bin/openclaw-network-entrypoint.sh"]
     command:
       [
         "node",
@@ -60,6 +106,8 @@ services:
     group_add:
       - "0"
     network_mode: service:openclaw-gateway
+    extra_hosts:
+      - host.docker.internal:host-gateway
     cap_drop:
       - NET_RAW
       - NET_ADMIN
@@ -78,6 +126,18 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       FEISHU_APP_ID: ${FEISHU_APP_ID:-}
       FEISHU_APP_SECRET: ${FEISHU_APP_SECRET:-}
+      OPENCLAW_SANDBOX_NETWORK: ${OPENCLAW_SANDBOX_NETWORK:-none}
+      OPENCLAW_SANDBOX_EXTRA_HOST: ${OPENCLAW_SANDBOX_EXTRA_HOST:-host.docker.internal:host-gateway}
+      OPENCLAW_PROXY_MODE: ${OPENCLAW_PROXY_MODE:-auto}
+      OPENCLAW_PROXY_PROBE_TIMEOUT_MS: ${OPENCLAW_PROXY_PROBE_TIMEOUT_MS:-1500}
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      ALL_PROXY: ${ALL_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,host.docker.internal,openclaw-gateway,openclaw-clawswarm,openclaw-admin-ui,openclaw-mysql}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      all_proxy: ${ALL_PROXY:-}
+      no_proxy: ${NO_PROXY:-localhost,127.0.0.1,host.docker.internal,openclaw-gateway,openclaw-clawswarm,openclaw-admin-ui,openclaw-mysql}
     volumes:
       - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/openclaw:/home/node/.openclaw
       - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/cache:/home/node/.cache
@@ -86,7 +146,8 @@ services:
     stdin_open: true
     tty: true
     init: true
-    entrypoint: ["node", "dist/index.js"]
+    entrypoint: ["/usr/local/bin/openclaw-network-entrypoint.sh"]
+    command: ["node", "dist/index.js"]
     depends_on:
       - openclaw-gateway
 
@@ -109,6 +170,18 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       FEISHU_APP_ID: ${FEISHU_APP_ID:-}
       FEISHU_APP_SECRET: ${FEISHU_APP_SECRET:-}
+      OPENCLAW_SANDBOX_NETWORK: ${OPENCLAW_SANDBOX_NETWORK:-none}
+      OPENCLAW_SANDBOX_EXTRA_HOST: ${OPENCLAW_SANDBOX_EXTRA_HOST:-host.docker.internal:host-gateway}
+      OPENCLAW_PROXY_MODE: ${OPENCLAW_PROXY_MODE:-auto}
+      OPENCLAW_PROXY_PROBE_TIMEOUT_MS: ${OPENCLAW_PROXY_PROBE_TIMEOUT_MS:-1500}
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      ALL_PROXY: ${ALL_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,host.docker.internal,openclaw-gateway,openclaw-clawswarm,openclaw-admin-ui,openclaw-mysql}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      all_proxy: ${ALL_PROXY:-}
+      no_proxy: ${NO_PROXY:-localhost,127.0.0.1,host.docker.internal,openclaw-gateway,openclaw-clawswarm,openclaw-admin-ui,openclaw-mysql}
     volumes:
       - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/openclaw:/home/node/.openclaw
       - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/cache:/home/node/.cache
@@ -117,8 +190,68 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     working_dir: /home/node/.openclaw/workspace
+    entrypoint: ["/usr/local/bin/openclaw-network-entrypoint.sh"]
     command: ["sleep", "infinity"]
     stdin_open: true
     tty: true
     init: true
     restart: "no"
+
+
+  openclaw-clawswarm:
+    image: ${OPENCLAW_CLAWSWARM_IMAGE:-openclaw-clawswarm-local:main}
+    environment:
+      TZ: ${OPENCLAW_TZ:-Asia/Shanghai}
+    ports:
+      - ${OPENCLAW_CLAWSWARM_PORT:-18080}:18080
+    volumes:
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}/clawswarm:/opt/clawswarm
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:18080/api/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  openclaw-admin-ui:
+    build:
+      context: .
+      dockerfile: apps/admin-ui/Dockerfile
+    environment:
+      NODE_ENV: production
+      HOME: /home/node
+      TZ: ${OPENCLAW_TZ:-Asia/Shanghai}
+      OPENCLAW_ADMIN_UI_PORT: ${OPENCLAW_ADMIN_UI_PORT:-18889}
+      OPENCLAW_ADMIN_UI_TOKEN: ${OPENCLAW_ADMIN_UI_TOKEN:-CHANGE_ME_ADMIN_TOKEN}
+      OPENCLAW_ADMIN_REPO_ROOT: /workspace/openclaw_docker
+      OPENCLAW_HOST_DATA_ROOT: ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}
+      DOCKER_SOCKET_PATH: ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}
+      OPENCLAW_CLAWSWARM_ENABLED: ${OPENCLAW_CLAWSWARM_ENABLED:-true}
+      OPENCLAW_CLAWSWARM_PORT: ${OPENCLAW_CLAWSWARM_PORT:-18080}
+      OPENCLAW_CLAWSWARM_INTERNAL_URL: ${OPENCLAW_CLAWSWARM_INTERNAL_URL:-http://openclaw-clawswarm:18080}
+      OPENCLAW_CLAWSWARM_PUBLIC_URL: ${OPENCLAW_CLAWSWARM_PUBLIC_URL:-http://localhost:18080}
+      OPENCLAW_CLAWSWARM_USERNAME: ${OPENCLAW_CLAWSWARM_USERNAME:-admin}
+      OPENCLAW_CLAWSWARM_PASSWORD: ${OPENCLAW_CLAWSWARM_PASSWORD:-admin123456}
+      OPENCLAW_PLATFORM_NAME: ${OPENCLAW_PLATFORM_NAME:-OpenClaw 平台}
+      OPENCLAW_PLATFORM_MYSQL_HOST: ${OPENCLAW_PLATFORM_MYSQL_HOST:-openclaw-mysql}
+      OPENCLAW_PLATFORM_MYSQL_PORT: ${OPENCLAW_PLATFORM_MYSQL_PORT:-3306}
+      OPENCLAW_PLATFORM_MYSQL_DATABASE: ${OPENCLAW_PLATFORM_MYSQL_DATABASE:-openclaw_platform}
+      OPENCLAW_PLATFORM_MYSQL_USER: ${OPENCLAW_PLATFORM_MYSQL_USER:-openclaw}
+      OPENCLAW_PLATFORM_MYSQL_PASSWORD: ${OPENCLAW_PLATFORM_MYSQL_PASSWORD:-openclaw_platform_change_me}
+      OPENCLAW_PLATFORM_CRYPTO_SECRET: ${OPENCLAW_PLATFORM_CRYPTO_SECRET:-openclaw_platform_crypto_secret_change_me}
+      OPENCLAW_PLATFORM_SESSION_TTL_DAYS: ${OPENCLAW_PLATFORM_SESSION_TTL_DAYS:-14}
+      OPENCLAW_PLATFORM_DEFAULT_MODEL: ${OPENCLAW_PLATFORM_DEFAULT_MODEL:-default/gpt-5.4}
+      OPENCLAW_PLATFORM_BOOTSTRAP_ADMIN_EMAIL: ${OPENCLAW_PLATFORM_BOOTSTRAP_ADMIN_EMAIL:-admin@openclaw.local}
+      OPENCLAW_PLATFORM_BOOTSTRAP_ADMIN_PASSWORD: ${OPENCLAW_PLATFORM_BOOTSTRAP_ADMIN_PASSWORD:-OpenClawAdmin123!}
+    ports:
+      - ${OPENCLAW_ADMIN_UI_PORT:-18889}:3000
+    volumes:
+      - .:/workspace/openclaw_docker
+      - ${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}:${OPENCLAW_HOST_DATA_ROOT:?Set OPENCLAW_HOST_DATA_ROOT in .env}
+      - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock
+    depends_on:
+      openclaw-mysql:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped

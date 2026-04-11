@@ -7,6 +7,7 @@ The format is loosely based on Keep a Changelog, and this project currently trac
 ## [Unreleased]
 
 ### Added
+- Added Control UI locale overlay with default Simplified Chinese, a floating language/text-mode switcher, bilingual labels, and Chinese settings search bridge
 - Added host-editable `openclaw.json` workflow
 - Added `openclaw-cli` and `openclaw-tools` service patterns
 - Added sandbox image build helper script
@@ -18,7 +19,9 @@ The format is loosely based on Keep a Changelog, and this project currently trac
 ### Changed
 - Updated Compose services to support Docker socket access on macOS Docker Desktop
 - Updated sandbox workspace paths to use host-visible absolute paths
-- Improved README for open source publishing and GitHub onboarding
+- Improved README to serve as the concise operator entrypoint
+- Rewrote `docs/open-source-manual.md` into a navigation-style overview
+- Split operator docs into `docs/operations.md` and `docs/faq.md`
 - Expanded login and pairing documentation to explain Mode A, Mode B, and first-admin bootstrap flow
 
 ### Fixed

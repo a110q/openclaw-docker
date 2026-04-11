@@ -1,0 +1,15 @@
+{
+  "id": "host-ops",
+  "name": "Host Ops",
+  "description": "Expose host-level OpenClaw operations as agent tools so sandboxed agents can request approved gateway-side changes.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "composeProjectName": {
+        "type": "string",
+        "description": "Optional compose project name prefix for container discovery."
+      }
+    }
+  }
+}

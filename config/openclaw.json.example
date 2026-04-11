@@ -140,7 +140,10 @@
         "workspaceRoot": "${OPENCLAW_HOST_DATA_ROOT}/openclaw/workspace/sandbox",
         "docker": {
           "image": "openclaw-sandbox-common:bookworm-slim",
-          "network": "none"
+          "network": "none",
+          "extraHosts": [
+            "host.docker.internal:host-gateway"
+          ]
         }
       },
       "maxConcurrent": 4,
@@ -195,7 +198,10 @@
       "applyPatch": {
         "workspaceOnly": true
       }
-    }
+    },
+    "alsoAllow": [
+      "host-ops"
+    ]
   },
   "channels": {
     "feishu": {

@@ -1,0 +1,73 @@
+.openclaw-bilingual-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.openclaw-bilingual-single {
+  display: inline-block;
+}
+
+.openclaw-bilingual-inline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.openclaw-bilingual-inline__zh,
+.openclaw-bilingual-chip__zh,
+.openclaw-bilingual-codeish__zh {
+  font-weight: 600;
+}
+
+.openclaw-bilingual-inline__sep,
+.openclaw-bilingual-inline__en,
+.openclaw-bilingual-chip__sep,
+.openclaw-bilingual-chip__en,
+.openclaw-bilingual-codeish__sep,
+.openclaw-bilingual-codeish__en {
+  opacity: 0.72;
+  font-size: 0.92em;
+}
+
+.openclaw-bilingual-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.openclaw-bilingual-stacked__zh {
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.openclaw-bilingual-stacked__en {
+  opacity: 0.68;
+  font-size: 0.9em;
+  line-height: 1.35;
+}
+
+.openclaw-bilingual-chip {
+  white-space: nowrap;
+}
+
+.openclaw-bilingual-codeish code {
+  padding: 0.08rem 0.32rem;
+  border-radius: 0.35rem;
+  background: rgba(148, 163, 184, 0.14);
+  font-size: 0.88em;
+}
+
+.openclaw-search-hidden {
+  display: none !important;
+}
+
+.openclaw-search-bridge-tip {
+  margin-top: 0.4rem;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(100, 116, 139, 0.96);
+}
